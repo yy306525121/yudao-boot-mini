@@ -30,4 +30,10 @@ public interface LogRecordConstants {
     String SYSTEM_ROLE_DELETE_SUB_TYPE = "删除角色";
     String SYSTEM_ROLE_DELETE_SUCCESS = "删除了角色【{{#role.name}}】";
 
+
+    // ======================= SCHOOL_TEACHER 教师 =======================
+    String SCHOOL_TEACHER_TYPE = "SCHOOL 教师";
+    String SCHOOL_TEACHER_DELETE_SUB_TYPE = "删除教师";
+    String SCHOOL_TEACHER_DELETE_SUCCESS = "删除了教师【{{#teacher.name}}】: {_DIFF{#updateReqVO}}";
+
 }

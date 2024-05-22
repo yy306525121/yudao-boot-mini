@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.school.dal.dataobject.teacher;
 
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.jackson.core.databind.BigDecimalSerializable;
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -10,6 +11,9 @@ import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
 
+/**
+ * 教师表
+ */
 @TableName("school_teacher")
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -21,10 +25,12 @@ public class TeacherDO extends TenantBaseDO {
     private String name;
 
     /**
-     * 0-在职
-     * 1-离职
+     * 状态
+     * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;
+
+    private Integer sort;
 
     /**
      * 基础工资
