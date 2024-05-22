@@ -9,6 +9,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Schema(description = "管理后台 - 教师信息 Response VO")
 @Data
@@ -33,6 +34,9 @@ public class TeacherRespVO {
     @Schema(description = "教师显示排序", requiredMode = Schema.RequiredMode.REQUIRED, example = "0")
     @ExcelProperty("教师显示排序")
     private Integer sort;
+
+    @Schema(description = "科目编号数组", example = "1")
+    private Set<Long> subjectIds;
 
     /**
      * 基础工资

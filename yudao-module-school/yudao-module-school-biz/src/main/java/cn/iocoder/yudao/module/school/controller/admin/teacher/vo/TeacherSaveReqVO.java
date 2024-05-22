@@ -1,5 +1,7 @@
 package cn.iocoder.yudao.module.school.controller.admin.teacher.vo;
 
+import cn.iocoder.yudao.module.school.framework.operatelog.core.TeacherParseFunction;
+import com.mzt.logapi.starter.annotation.DiffLogField;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -7,7 +9,6 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -36,5 +37,6 @@ public class TeacherSaveReqVO {
 
     @Schema(description = "授课科目zhujian")
     @NotEmpty(message = "授课科目不能为空")
+    @DiffLogField(name = "岗位", function = TeacherParseFunction.NAME)
     private Set<Long> subjectIds;
 }

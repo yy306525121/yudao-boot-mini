@@ -42,8 +42,8 @@ public class TeacherController {
     @Operation(summary = "创建教师")
     @PreAuthorize("@ss.hasPermission('school:teacher:create')")
     public CommonResult<Long> createTeacher(@Valid @RequestBody TeacherSaveReqVO reqVO) {
-        Long deptId = teacherService.createTeacher(reqVO);
-        return CommonResult.success(deptId);
+        Long teacherId = teacherService.createTeacher(reqVO);
+        return CommonResult.success(teacherId);
     }
 
 
@@ -59,7 +59,7 @@ public class TeacherController {
     @Operation(summary = "删除教师")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
     @PreAuthorize("@ss.hasPermission('school:teacher:delete')")
-    public CommonResult<Boolean> deleteDept(@RequestParam("id") Long id) {
+    public CommonResult<Boolean> deleteTeacher(@RequestParam("id") Long id) {
         teacherService.deleteTeacher(id);
         return success(true);
     }
