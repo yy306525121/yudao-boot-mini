@@ -16,4 +16,8 @@ public interface TeacherMapper extends BaseMapperX<TeacherDO>{
                 .orderByAsc(TeacherDO::getSort)
         );
     }
+
+    default TeacherDO selectByName(String name) {
+        return selectOne(TeacherDO::getName, name);
+    }
 }
