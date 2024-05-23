@@ -13,4 +13,14 @@ public interface LogRecordConstants {
     String SCHOOL_TEACHER_UPDATE_SUCCESS = "更新了教师【{{#teacher.name}}】: {_DIFF{#reqVO}}";
     String SCHOOL_TEACHER_DELETE_SUB_TYPE = "删除教师";
     String SCHOOL_TEACHER_DELETE_SUCCESS = "删除了教师【{{#teacher.name}}】: {_DIFF{#reqVO}}";
+
+
+    // ======================= SCHOOL_SUBJECT 科目 =======================
+    String SCHOOL_SUBJECT_TYPE = "SCHOOL 科目";
+    String SCHOOL_SUBJECT_CREATE_SUB_TYPE = "创建科目";
+    String SCHOOL_SUBJECT_CREATE_SUCCESS = "创建了科目【{{#subject.name}}】";
+    String SCHOOL_SUBJECT_UPDATE_SUB_TYPE = "更新科目";
+    String SCHOOL_SUBJECT_UPDATE_SUCCESS = "更新了科目【{{#subject.name}}】: {_DIFF{#updateReqVO}}";
+    String SCHOOL_SUBJECT_DELETE_SUB_TYPE = "删除科目";
+    String SCHOOL_SUBJECT_DELETE_SUCCESS = "删除了科目【{{#subject.name}}】: {_DIFF{#reqVO}}";
 }
