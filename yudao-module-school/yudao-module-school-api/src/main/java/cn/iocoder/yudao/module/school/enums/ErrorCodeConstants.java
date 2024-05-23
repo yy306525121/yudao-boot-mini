@@ -10,6 +10,7 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 public interface ErrorCodeConstants {
     // ========== 科目 100100100 ==========
     ErrorCode SUBJECT_NOT_EXISTS = new ErrorCode(100100100, "科目信息不存在");
+    ErrorCode SUBJECT_NAME_DUPLICATE = new ErrorCode(100100101, "科目信息已存在");
 
     // ========== 教师 100200100 ==========
     ErrorCode TEACHER_NOT_EXISTS = new ErrorCode(100200100, "教师不存在");
@@ -22,4 +23,9 @@ public interface ErrorCodeConstants {
     ErrorCode GRADE_PARENT_ERROR = new ErrorCode(100300103, "不能设置自己为父班级");
     ErrorCode GRADE_NAME_DUPLICATE = new ErrorCode(100300104, "已经存在该班级名称的班级");
     ErrorCode GRADE_PARENT_IS_CHILD = new ErrorCode(100300105, "不能设置自己的子年级为父年级");
+
+
+    // ========== 课程类型 100400100 ==========
+    ErrorCode COURSE_TYPE_NOT_EXISTS = new ErrorCode(100400100, "课程类型不存在");
+    ErrorCode COURSE_TYPE_NAME_DUPLICATE = new ErrorCode(100400101, "课程类型已存在");
 }

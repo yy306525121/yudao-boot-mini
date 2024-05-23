@@ -16,13 +16,14 @@ import com.mzt.logapi.service.impl.DiffParseFunction;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -48,10 +49,7 @@ public class TeacherServiceImpl implements TeacherService {
     @LogRecord(type = SCHOOL_TEACHER_TYPE, subType = SCHOOL_TEACHER_CREATE_SUB_TYPE, bizNo = "{{#teacher.id}}",
             success = SCHOOL_TEACHER_CREATE_SUCCESS)
     public Long createTeacher(TeacherSaveReqVO reqVO) {
-        String name = reqVO.getName();
-        if (teacherMapper.selectByName(name) != null) {
-            throw exception(TEACHER_NAME_DUPLICATE);
-        }
+        validateTeacherNameUnique(null, reqVO.getName());
 
         TeacherDO teacher = BeanUtils.toBean(reqVO, TeacherDO.class);
         teacherMapper.insert(teacher);
@@ -76,11 +74,15 @@ public class TeacherServiceImpl implements TeacherService {
         return teacher.getId();
     }
 
+
+
     @Override
     @LogRecord(type = SCHOOL_TEACHER_TYPE, subType = SCHOOL_TEACHER_UPDATE_SUB_TYPE, bizNo = "{{#reqVO.id}}",
             success = SCHOOL_TEACHER_UPDATE_SUCCESS)
     public void updateTeacher(TeacherSaveReqVO reqVO) {
         TeacherDO oldTeacher = validateTeacherExists(reqVO.getId());
+
+        validateTeacherNameUnique(reqVO.getId(), reqVO.getName());
 
         TeacherDO teacher = BeanUtils.toBean(reqVO, TeacherDO.class);
         teacherMapper.updateById(teacher);
@@ -124,5 +126,22 @@ public class TeacherServiceImpl implements TeacherService {
             throw exception(TEACHER_NOT_EXISTS);
         }
         return teacher;
+    }
+
+    private void validateTeacherNameUnique(@Nullable Long id, String name) {
+        TeacherDO teacher = teacherMapper.selectByName(name);
+        if (teacher == null) {
+            return;
+        }
+
+        if (id == null) {
+            // 如果id为空，表示新增，比较时不用排除自身
+            throw exception(TEACHER_NAME_DUPLICATE);
+        } else {
+            // 如果id不为空，表示更新，检查时需要排除自身
+            if (!Objects.equals(teacherMapper.selectById(id).getId(), teacher.getId())) {
+                throw exception(TEACHER_NAME_DUPLICATE);
+            }
+        }
     }
 }

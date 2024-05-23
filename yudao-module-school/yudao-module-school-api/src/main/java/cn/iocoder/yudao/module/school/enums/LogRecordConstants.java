@@ -33,4 +33,13 @@ public interface LogRecordConstants {
     String SCHOOL_GRADE_UPDATE_SUCCESS = "更新了年级【{{#grade.name}}】: {_DIFF{#updateReqVO}}";
     String SCHOOL_GRADE_DELETE_SUB_TYPE = "删除年级";
     String SCHOOL_GRADE_DELETE_SUCCESS = "删除了年级【{{#grade.name}}】";
+
+    // ======================= SCHOOL_COURSE_TYPE 课程类型 =======================
+    String SCHOOL_COURSE_TYPE_TYPE = "SCHOOL 课程类型";
+    String SCHOOL_COURSE_TYPE_CREATE_SUB_TYPE = "创建课程类型";
+    String SCHOOL_COURSE_TYPE_CREATE_SUCCESS = "创建了课程类型【{{#courseType.name}}】";
+    String SCHOOL_COURSE_TYPE_UPDATE_SUB_TYPE = "更新课程类型";
+    String SCHOOL_COURSE_TYPE_UPDATE_SUCCESS = "更新了课程类型【{{#courseType.name}}】: {_DIFF{#updateReqVO}}";
+    String SCHOOL_COURSE_TYPE_DELETE_SUB_TYPE = "删除课程类型";
+    String SCHOOL_COURSE_TYPE_DELETE_SUCCESS = "删除了课程类型【{{#courseType.name}}】";
 }

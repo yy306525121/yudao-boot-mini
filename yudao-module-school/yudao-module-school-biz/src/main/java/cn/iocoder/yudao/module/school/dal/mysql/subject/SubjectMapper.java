@@ -32,4 +32,8 @@ public interface SubjectMapper extends BaseMapperX<SubjectDO> {
         return selectList(new LambdaQueryWrapperX<SubjectDO>()
                 .inIfPresent(SubjectDO::getId, ids));
     }
+
+    default SubjectDO selectByName(String name) {
+        return selectOne(SubjectDO::getName, name);
+    }
 }
