@@ -1,4 +1,4 @@
-package cn.iocoder.yudao.module.school.dal.dataobject.classinfo;
+package cn.iocoder.yudao.module.school.dal.dataobject.grade;
 
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -10,14 +10,14 @@ import lombok.*;
  *
  * @author yangzy
  */
-@TableName("school_class_info")
+@TableName("school_grade")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClassInfoDO extends BaseDO {
+public class GradeDO extends BaseDO {
 
     public static final Long PARENT_ID_ROOT = 0L;
 

@@ -2,10 +2,8 @@ package cn.iocoder.yudao.module.school.framework.operatelog.core;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
-import cn.iocoder.yudao.module.school.dal.dataobject.classinfo.ClassInfoDO;
-import cn.iocoder.yudao.module.school.dal.dataobject.subject.SubjectDO;
-import cn.iocoder.yudao.module.school.service.classinfo.ClassInfoService;
-import cn.iocoder.yudao.module.school.service.subject.SubjectService;
+import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
+import cn.iocoder.yudao.module.school.service.grade.GradeService;
 import com.mzt.logapi.service.IParseFunction;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +17,10 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ClassInfoParseFunction implements IParseFunction {
-    public static final String NAME = "getClassInfoById";
+public class GradeParseFunction implements IParseFunction {
+    public static final String NAME = "getGradeById";
 
-    private final ClassInfoService classInfoService;
+    private final GradeService gradeService;
 
     @Override
     public String functionName() {
@@ -36,11 +34,11 @@ public class ClassInfoParseFunction implements IParseFunction {
         }
 
         // 获取部门信息
-        ClassInfoDO classInfo = classInfoService.getClassInfo(Convert.toLong(value));
-        if (classInfo == null) {
+        GradeDO grade = gradeService.getGrade(Convert.toLong(value));
+        if (grade == null) {
             log.warn("[apply][获取年级{{}}为空", value);
             return "";
         }
-        return classInfo.getName();
+        return grade.getName();
     }
 }
