@@ -45,14 +45,13 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @LogRecord(type = SCHOOL_TEACHER_TYPE, subType = SCHOOL_TEACHER_CREATE_SUB_TYPE, bizNo = "{{#user.id}}",
+    @LogRecord(type = SCHOOL_TEACHER_TYPE, subType = SCHOOL_TEACHER_CREATE_SUB_TYPE, bizNo = "{{#teacher.id}}",
             success = SCHOOL_TEACHER_CREATE_SUCCESS)
     public Long createTeacher(TeacherSaveReqVO reqVO) {
         String name = reqVO.getName();
         if (teacherMapper.selectByName(name) != null) {
             throw exception(TEACHER_NAME_DUPLICATE);
         }
-
 
         TeacherDO teacher = BeanUtils.toBean(reqVO, TeacherDO.class);
         teacherMapper.insert(teacher);
