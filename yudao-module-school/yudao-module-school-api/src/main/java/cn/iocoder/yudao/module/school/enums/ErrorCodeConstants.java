@@ -21,11 +21,15 @@ public interface ErrorCodeConstants {
     ErrorCode GRADE_EXITS_CHILDREN = new ErrorCode(100300101, "存在子班级，无法删除");
     ErrorCode GRADE_PARENT_NOT_EXITS = new ErrorCode(100300102,"父级班级不存在");
     ErrorCode GRADE_PARENT_ERROR = new ErrorCode(100300103, "不能设置自己为父班级");
-    ErrorCode GRADE_NAME_DUPLICATE = new ErrorCode(100300104, "已经存在该班级名称的班级");
+    ErrorCode GRADE_NAME_DUPLICATE = new ErrorCode(100300104, "班级名称已存在");
     ErrorCode GRADE_PARENT_IS_CHILD = new ErrorCode(100300105, "不能设置自己的子年级为父年级");
 
 
     // ========== 课程类型 100400100 ==========
     ErrorCode COURSE_TYPE_NOT_EXISTS = new ErrorCode(100400100, "课程类型不存在");
     ErrorCode COURSE_TYPE_NAME_DUPLICATE = new ErrorCode(100400101, "课程类型已存在");
+
+    // ========== 课程时段 100500100 ==========
+    ErrorCode TIME_SLOT_NOT_EXISTS = new ErrorCode(100500100, "课程节次不存在");
+    ErrorCode TIME_SLOT_SORT_DUPLICATE = new ErrorCode(100500104, "课程节次已存在");
 }
