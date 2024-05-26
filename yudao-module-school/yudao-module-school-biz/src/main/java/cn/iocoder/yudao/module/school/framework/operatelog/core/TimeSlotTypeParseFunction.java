@@ -2,21 +2,23 @@ package cn.iocoder.yudao.module.school.framework.operatelog.core;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
-import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
+import cn.iocoder.yudao.module.school.enums.course.TimeSlotTypeEnum;
 import com.mzt.logapi.service.IParseFunction;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * 通用状态的 {@link IParseFunction} 实现类
+ * 课程节次类型的 {@link IParseFunction} 实现类
+ *
  * @author yangzy
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CommonStatusParseFunction implements IParseFunction {
-    public static final String NAME = "CommonStatus";
+public class TimeSlotTypeParseFunction implements IParseFunction {
+    public static final String NAME = "TimeSlotType";
+
 
     @Override
     public String functionName() {
@@ -29,13 +31,6 @@ public class CommonStatusParseFunction implements IParseFunction {
             return "";
         }
 
-
-        if (CommonStatusEnum.isEnable(Convert.toInt(value))) {
-            return CommonStatusEnum.ENABLE.getName();
-        } else if (CommonStatusEnum.isDisable(Convert.toInt(value))) {
-            return CommonStatusEnum.DISABLE.getName();
-        } else {
-            return "";
-        }
+        return TimeSlotTypeEnum.getName(Convert.toInt(value));
     }
 }

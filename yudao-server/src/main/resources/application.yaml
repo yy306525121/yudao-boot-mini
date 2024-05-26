@@ -262,3 +262,8 @@ debug: false
 jeecg:
   jmreport:
     saas-mode: tenant
+
+mzt:
+  log:
+    record:
+      useEqualsMethod: java.time.LocalTime,java.time.Instant
