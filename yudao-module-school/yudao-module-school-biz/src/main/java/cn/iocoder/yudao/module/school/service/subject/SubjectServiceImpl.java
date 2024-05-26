@@ -112,6 +112,11 @@ public class SubjectServiceImpl implements SubjectService {
     }
 
     @Override
+    public SubjectDO getSubject(String name) {
+        return subjectMapper.selectByName(name);
+    }
+
+    @Override
     public PageResult<SubjectDO> getSubjectPage(SubjectPageReqVO pageReqVO) {
         return subjectMapper.selectPage(pageReqVO);
     }
@@ -119,5 +124,10 @@ public class SubjectServiceImpl implements SubjectService {
     @Override
     public List<SubjectDO> getSubjectList(Collection<Long> ids) {
         return subjectMapper.selectList(ids);
+    }
+
+    @Override
+    public List<SubjectDO> getAll() {
+        return subjectMapper.selectList();
     }
 }

@@ -5,21 +5,21 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 
-import java.time.LocalTime;
+import java.time.LocalDate;
 
 /**
- * 课程节次 DO
+ * 课程计划 DO
  *
  * @author yangzy
  */
-@TableName("school_time_slot")
+@TableName("school_course_plan")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TimeSlotDO extends BaseDO {
+public class CoursePlanDO extends BaseDO {
 
     /**
      * 主键
@@ -27,22 +27,38 @@ public class TimeSlotDO extends BaseDO {
     @TableId
     private Long id;
     /**
-     * 节次类型
-     *
-     * 枚举 {@link cn.iocoder.yudao.module.school.enums.course.TimeSlotTypeEnum}
+     * 星期
      */
-    private Integer type;
+    private Integer week;
+    /**
+     * 年级
+     */
+    private Long gradeId;
+    /**
+     * 课程类型
+     */
+    private Long courseTypeId;
+    /**
+     * 科目
+     */
+    private Long subjectId;
+    /**
+     * 教师
+     */
+    private Long teacherId;
     /**
      * 课程节次
      */
-    private Integer sort;
+    private Long timeSlotId;
     /**
-     * 开始时间
+     * 课程生效日期
      */
-    private LocalTime startTime;
+    private LocalDate start;
     /**
-     * 结束时间
+     * 课程失效日期
      */
-    private LocalTime endTime;
+    private LocalDate end;
+
+
 
 }

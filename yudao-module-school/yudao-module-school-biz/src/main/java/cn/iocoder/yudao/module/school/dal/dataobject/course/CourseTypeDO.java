@@ -31,6 +31,10 @@ public class CourseTypeDO extends BaseDO {
      */
     private String name;
     /**
+     * 课程类型值
+     */
+    private Integer type;
+    /**
      * 每一节该类型的课按多少课时算
      */
     private BigDecimal num;

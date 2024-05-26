@@ -1,9 +1,12 @@
 package cn.iocoder.yudao.module.school.service.teacher;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherListReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherPageReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherSaveReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
+
+import java.util.List;
 
 /**
  * 教师Service接口
@@ -42,4 +45,33 @@ public interface TeacherService {
      * @return 教师信息
      */
     TeacherDO getTeacher(Long id);
+
+    /**
+     * 获取教师信息
+     * @param name 教师姓名
+     * @return 教师信息
+     */
+    TeacherDO getTeacher(String name);
+
+    /**
+     * 获取所有的教师
+     * @return 所有教师列表
+     */
+    List<TeacherDO> getAll();
+
+
+    /**
+     * 获取教师列表
+     * @param reqVO 查询条件
+     * @return 教师列表
+     */
+    List<TeacherDO> getTeacherList(TeacherListReqVO reqVO);
+
+    /**
+     * 判断教师是否任课某个科目
+     * @param teacherId 教师编号
+     * @param subjectId 科目编号
+     * @return
+     */
+    boolean hasSubject(Long teacherId, Long subjectId);
 }

@@ -59,4 +59,17 @@ public interface GradeService {
      */
     List<Tree<Long>> gradeTree();
 
+    /**
+     * 获取年级信息
+     * @param name 年级名称
+     * @return 年级信息
+     */
+    GradeDO getGrade(String name);
+
+    /**
+     * 获取所有的年级
+     * @return
+     */
+    List<GradeDO> getAll();
+
 }

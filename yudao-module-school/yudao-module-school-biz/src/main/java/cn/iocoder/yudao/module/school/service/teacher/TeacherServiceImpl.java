@@ -2,6 +2,7 @@ package cn.iocoder.yudao.module.school.service.teacher;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherListReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherPageReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherSaveReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.subject.SubjectDO;
@@ -113,6 +114,26 @@ public class TeacherServiceImpl implements TeacherService {
     @Override
     public TeacherDO getTeacher(Long id) {
         return teacherMapper.selectById(id);
+    }
+
+    @Override
+    public TeacherDO getTeacher(String name) {
+        return teacherMapper.selectByName(name);
+    }
+
+    @Override
+    public List<TeacherDO> getAll() {
+        return teacherMapper.selectList();
+    }
+
+    @Override
+    public List<TeacherDO> getTeacherList(TeacherListReqVO reqVO) {
+        return teacherMapper.selectList(reqVO);
+    }
+
+    @Override
+    public boolean hasSubject(Long teacherId, Long subjectId) {
+        return teacherSubjectMapper.selectOne(teacherId, subjectId) != null;
     }
 
     @VisibleForTesting

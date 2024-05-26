@@ -1,14 +1,13 @@
 package cn.iocoder.yudao.module.school.controller.admin.teacher;
 
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
-import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherPageReqVO;
-import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherRespVO;
-import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherSaveReqVO;
+import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.*;
 import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
 import cn.iocoder.yudao.module.school.service.teacher.TeacherService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -70,6 +69,13 @@ public class TeacherController {
     public CommonResult<PageResult<TeacherRespVO>> getUserPage(@Valid TeacherPageReqVO pageReqVO) {
         PageResult<TeacherDO> pageResult = teacherService.getTeacherPage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, TeacherRespVO.class));
+    }
+
+    @GetMapping(value = {"/list-all-simple", "/simple-list"})
+    @Operation(summary = "获取教师精简信息列表")
+    public CommonResult<List<TeacherSimpleRespVO>> getSimpleTeacherList() {
+        List<TeacherDO> list = teacherService.getTeacherList(new TeacherListReqVO().setStatus(CommonStatusEnum.ENABLE.getStatus()));
+        return success(BeanUtils.toBean(list, TeacherSimpleRespVO.class));
     }
 
     @GetMapping("/get")

@@ -46,6 +46,13 @@ public interface SubjectService {
     SubjectDO getSubject(Long id);
 
     /**
+     * 获得科目信息
+     * @param name 科目名称
+     * @return 科目信息
+     */
+    SubjectDO getSubject(String name);
+
+    /**
      * 获得科目信息分页
      *
      * @param pageReqVO 分页查询
@@ -60,4 +67,11 @@ public interface SubjectService {
      * @return 科目列表
      */
     List<SubjectDO> getSubjectList(Collection<Long> ids);
+
+    /**
+     * 获取所有科目信息
+     * @return 所有科目信息列表
+     */
+    List<SubjectDO> getAll();
+
 }

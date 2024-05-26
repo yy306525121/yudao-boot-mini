@@ -6,6 +6,8 @@ import cn.iocoder.yudao.module.school.controller.admin.course.vo.CourseTypeSaveR
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseTypeDO;
 import jakarta.validation.Valid;
 
+import java.util.List;
+
 /**
  * 课程类型 Service 接口
  *
@@ -51,4 +53,16 @@ public interface CourseTypeService {
      */
     PageResult<CourseTypeDO> getCourseTypePage(CourseTypePageReqVO pageReqVO);
 
+    /**
+     * 获取课程类型信息
+     * @param name 课程类型名称
+     * @return 课程类型信息
+     */
+    CourseTypeDO getCourseType(String name);
+
+    /**
+     * 获取所有的课程类型列表数据
+     * @return 所有的课程类型列表
+     */
+    List<CourseTypeDO> getAll();
 }

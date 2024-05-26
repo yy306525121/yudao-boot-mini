@@ -1,14 +1,14 @@
 package cn.iocoder.yudao.module.school.dal.mysql.course;
 
-import java.util.*;
-
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
+import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
+import cn.iocoder.yudao.module.school.controller.admin.course.vo.TimeSlotListReqVO;
+import cn.iocoder.yudao.module.school.controller.admin.course.vo.TimeSlotPageReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
-import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
 import org.apache.ibatis.annotations.Mapper;
-import cn.iocoder.yudao.module.school.controller.admin.course.vo.*;
+
+import java.util.List;
 
 /**
  * 课程节次 Mapper
@@ -32,5 +32,13 @@ public interface TimeSlotMapper extends BaseMapperX<TimeSlotDO> {
         return selectList(new LambdaQueryWrapperX<TimeSlotDO>()
                 .eqIfPresent(TimeSlotDO::getSort, listReqVO.getSort())
                 .orderByAsc(TimeSlotDO::getSort));
+    }
+
+    default TimeSlotDO selectOneBySort(Integer sort) {
+        return selectOne(TimeSlotDO::getSort, sort);
+    }
+
+    default List<TimeSlotDO> selectListByType(Integer type) {
+        return selectList(TimeSlotDO::getType, type);
     }
 }

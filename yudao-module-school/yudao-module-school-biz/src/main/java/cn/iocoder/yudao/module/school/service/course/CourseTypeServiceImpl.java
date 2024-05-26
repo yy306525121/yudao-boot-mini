@@ -14,6 +14,8 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.List;
+
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.COURSE_TYPE_NAME_DUPLICATE;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.COURSE_TYPE_NOT_EXISTS;
@@ -109,6 +111,16 @@ public class CourseTypeServiceImpl implements CourseTypeService {
     @Override
     public PageResult<CourseTypeDO> getCourseTypePage(CourseTypePageReqVO pageReqVO) {
         return courseTypeMapper.selectPage(pageReqVO);
+    }
+
+    @Override
+    public CourseTypeDO getCourseType(String name) {
+        return courseTypeMapper.selectByName(name);
+    }
+
+    @Override
+    public List<CourseTypeDO> getAll() {
+        return courseTypeMapper.selectList();
     }
 
 }

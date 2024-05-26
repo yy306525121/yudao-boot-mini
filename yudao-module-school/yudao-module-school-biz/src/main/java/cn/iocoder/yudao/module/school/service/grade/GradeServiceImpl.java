@@ -175,6 +175,16 @@ public class GradeServiceImpl implements GradeService {
         return TreeUtil.build(treeNodeList, GradeDO.PARENT_ID_ROOT);
     }
 
+    @Override
+    public GradeDO getGrade(String name) {
+        return gradeMapper.selectByName(name);
+    }
+
+    @Override
+    public List<GradeDO> getAll() {
+        return gradeMapper.selectList();
+    }
+
     private Function<GradeDO, TreeNode<Long>> getTreeNodeFunction() {
         return grade -> {
             TreeNode<Long> node = new TreeNode<>();

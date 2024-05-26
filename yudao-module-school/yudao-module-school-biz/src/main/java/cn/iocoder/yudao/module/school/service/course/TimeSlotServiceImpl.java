@@ -1,27 +1,26 @@
 package cn.iocoder.yudao.module.school.service.course;
 
-import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.module.school.controller.admin.course.vo.TimeSlotListReqVO;
+import cn.iocoder.yudao.module.school.controller.admin.course.vo.TimeSlotPageReqVO;
+import cn.iocoder.yudao.module.school.controller.admin.course.vo.TimeSlotSaveReqVO;
+import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
+import cn.iocoder.yudao.module.school.dal.mysql.course.TimeSlotMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.service.impl.DiffParseFunction;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import jakarta.annotation.Nullable;
-import org.springframework.stereotype.Service;
 import jakarta.annotation.Resource;
+import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import cn.iocoder.yudao.module.school.controller.admin.course.vo.*;
-import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
-import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-
-import cn.iocoder.yudao.module.school.dal.mysql.course.TimeSlotMapper;
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.*;
+import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.TIME_SLOT_NOT_EXISTS;
+import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.TIME_SLOT_SORT_DUPLICATE;
 import static cn.iocoder.yudao.module.school.enums.LogRecordConstants.*;
 
 /**
@@ -104,6 +103,21 @@ public class TimeSlotServiceImpl implements TimeSlotService {
     @Override
     public List<TimeSlotDO> getTimeSlotList(TimeSlotListReqVO listReqVO) {
         return timeSlotMapper.selectList(listReqVO);
+    }
+
+    @Override
+    public TimeSlotDO getTimeSlotBySort(Integer sort) {
+        return timeSlotMapper.selectOneBySort(sort);
+    }
+
+    @Override
+    public List<TimeSlotDO> getTimeSlotByType(Integer type) {
+        return timeSlotMapper.selectListByType(type);
+    }
+
+    @Override
+    public List<TimeSlotDO> getAll() {
+        return timeSlotMapper.selectList();
     }
 
 

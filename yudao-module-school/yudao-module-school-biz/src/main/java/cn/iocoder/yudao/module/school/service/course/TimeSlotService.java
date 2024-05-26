@@ -1,13 +1,13 @@
 package cn.iocoder.yudao.module.school.service.course;
 
-import java.util.*;
-
-import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
-import jakarta.validation.*;
-import cn.iocoder.yudao.module.school.controller.admin.course.vo.*;
-import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
+import cn.iocoder.yudao.module.school.controller.admin.course.vo.TimeSlotListReqVO;
+import cn.iocoder.yudao.module.school.controller.admin.course.vo.TimeSlotPageReqVO;
+import cn.iocoder.yudao.module.school.controller.admin.course.vo.TimeSlotSaveReqVO;
+import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
+import jakarta.validation.Valid;
+
+import java.util.List;
 
 /**
  * 课程节次 Service 接口
@@ -60,4 +60,24 @@ public interface TimeSlotService {
      * @return 课程节次列表
      */
     List<TimeSlotDO> getTimeSlotList(TimeSlotListReqVO listReqVO);
+
+    /**
+     * 获取课程节次信息
+     * @param sort 课程节次序号
+     * @return 课程节次信息
+     */
+    TimeSlotDO getTimeSlotBySort(Integer sort);
+
+    /**
+     * 获取课程节次列表数据
+     * @param type 课程节次类型
+     * @return 课程节次列表数据
+     */
+    List<TimeSlotDO> getTimeSlotByType(Integer type);
+
+    /**
+     * 获取所有课程节次数据
+     * @return 所有课程节次信息列表
+     */
+    List<TimeSlotDO> getAll();
 }

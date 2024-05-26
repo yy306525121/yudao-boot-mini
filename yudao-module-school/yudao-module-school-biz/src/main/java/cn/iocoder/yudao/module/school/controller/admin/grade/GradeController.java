@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.module.school.controller.admin.grade.vo.GradeListReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.grade.vo.GradeRespVO;
 import cn.iocoder.yudao.module.school.controller.admin.grade.vo.GradeSaveReqVO;
+import cn.iocoder.yudao.module.school.controller.admin.grade.vo.GradeSimpleRespVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
 import cn.iocoder.yudao.module.school.service.grade.GradeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -74,6 +75,13 @@ public class GradeController {
     public CommonResult<List<GradeRespVO>> getGradeList(@Valid GradeListReqVO listReqVO) {
         List<GradeDO> list = gradeService.getGradeList(listReqVO);
         return success(BeanUtils.toBean(list, GradeRespVO.class));
+    }
+
+    @GetMapping(value = {"/list-all-simple", "/simple-list"})
+    @Operation(summary = "获取年级精简信息列表")
+    public CommonResult<List<GradeSimpleRespVO>> getSimpleGradeList() {
+        List<GradeDO> list = gradeService.getGradeList(new GradeListReqVO());
+        return success(BeanUtils.toBean(list, GradeSimpleRespVO.class));
     }
 
     @GetMapping("/tree")

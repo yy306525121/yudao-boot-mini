@@ -20,6 +20,11 @@ public class CourseTypeSaveReqVO {
     @DiffLogField(name = "课程类型")
     private String name;
 
+    @Schema(description = "课程类型值", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    @NotEmpty(message = "课程类型值不能为空")
+    @DiffLogField(name = "课程类型值")
+    private Integer type;
+
     @Schema(description = "课时数", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "课时数不能为空")
     @DiffLogField(name = "课时数")

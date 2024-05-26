@@ -21,6 +21,10 @@ public class CourseTypeRespVO {
     @ExcelProperty("课程类型")
     private String name;
 
+    @Schema(description = "课程类型值", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    @ExcelProperty("课程类型值")
+    private Integer type;
+
     @Schema(description = "课时数", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("课时数")
     private BigDecimal num;
