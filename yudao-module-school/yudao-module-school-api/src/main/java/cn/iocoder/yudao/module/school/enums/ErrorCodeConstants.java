@@ -46,5 +46,6 @@ public interface ErrorCodeConstants {
     ErrorCode COURSE_PLAN_IMPORT_TIME_SLOT_ERROR = new ErrorCode(100600201, "导入文件中sheet页({})中的第({})行节次信息错误,请检查");
     ErrorCode COURSE_PLAN_IMPORT_TIME_SLOT_SORT_NOT_EXISTS = new ErrorCode(100600202, "导入文件中sheet页({})中的课程节次(sort={})不存在,请检查");
     ErrorCode COURSE_PLAN_IMPORT_TIME_SLOT_WEEK_ERROR = new ErrorCode(100600203, "导入文件中sheet页({})中的第({})列的星期设置错误,请检查");
+    ErrorCode COURSE_PLAN_CHANGE_PARAM_NOT_EXISTS = new ErrorCode(100600204, "课程节次和原课程教师不能同事为空");
 
 }

@@ -7,6 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.module.school.controller.admin.course.vo.CoursePlanChangeReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.course.vo.CoursePlanListReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.course.vo.CoursePlanRespVO;
 import cn.iocoder.yudao.module.school.controller.admin.course.vo.CoursePlanSaveReqVO;
@@ -41,6 +42,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -212,6 +214,27 @@ public class CoursePlanController {
         }
 
         coursePlanService.createCoursePlan(coursePlanList);
+        return success(true);
+    }
+
+    @PostMapping("/change")
+    @Operation(summary = "调整课程计划")
+    @PreAuthorize("@ss.hasPermission('school:course-plan:change')")
+    public CommonResult<Boolean> createCoursePlan(@Valid @RequestBody CoursePlanChangeReqVO reqVO) {
+        // 调课日期
+        LocalDate date = reqVO.getDate();
+        // 调课班级
+        Long gradeId = reqVO.getGradeId();
+        // 调课教师
+        Long toTeacherId = reqVO.getToTeacherId();
+
+        if (reqVO.getTimeSlotId() == null && reqVO.getFromTeacherId() == null) {
+            throw exception(COURSE_PLAN_CHANGE_PARAM_NOT_EXISTS);
+        }
+
+        // 1.查询需要调课的原有课程
+        coursePlanService.getCoursePlanList(gradeId, null, null, null, date);
+
         return success(true);
     }
 

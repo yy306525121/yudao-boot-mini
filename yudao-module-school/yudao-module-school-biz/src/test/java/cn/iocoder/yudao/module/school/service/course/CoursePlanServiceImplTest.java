@@ -1,23 +1,20 @@
 package cn.iocoder.yudao.module.school.service.course;
 
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
-import cn.iocoder.yudao.module.school.controller.admin.course.vo.CoursePlanListReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.course.vo.CoursePlanSaveReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CoursePlanDO;
 import cn.iocoder.yudao.module.school.dal.mysql.course.CoursePlanMapper;
 import jakarta.annotation.Resource;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 
-import static cn.iocoder.yudao.framework.common.util.object.ObjectUtils.cloneIgnoreId;
 import static cn.iocoder.yudao.framework.test.core.util.AssertUtils.assertPojoEquals;
 import static cn.iocoder.yudao.framework.test.core.util.AssertUtils.assertServiceException;
 import static cn.iocoder.yudao.framework.test.core.util.RandomUtils.randomLongId;
 import static cn.iocoder.yudao.framework.test.core.util.RandomUtils.randomPojo;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.COURSE_PLAN_NOT_EXISTS;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * {@link CoursePlanServiceImpl} 的单元测试类
@@ -94,32 +91,6 @@ public class CoursePlanServiceImplTest extends BaseDbUnitTest {
 
         // 调用, 并断言异常
         assertServiceException(() -> coursePlanService.deleteCoursePlan(id), COURSE_PLAN_NOT_EXISTS);
-    }
-
-    @Test
-    @Disabled  // TODO 请修改 null 为需要的值，然后删除 @Disabled 注解
-    public void testGetCoursePlanPage() {
-       // mock 数据
-       CoursePlanDO dbCoursePlan = randomPojo(CoursePlanDO.class, o -> { // 等会查询到
-           o.setGradeId(null);
-           o.setTeacherId(null);
-       });
-       coursePlanMapper.insert(dbCoursePlan);
-       // 测试 gradeId 不匹配
-       coursePlanMapper.insert(cloneIgnoreId(dbCoursePlan, o -> o.setGradeId(null)));
-       // 测试 teacherId 不匹配
-       coursePlanMapper.insert(cloneIgnoreId(dbCoursePlan, o -> o.setTeacherId(null)));
-       // 准备参数
-       CoursePlanListReqVO reqVO = new CoursePlanListReqVO();
-       reqVO.setGradeId(null);
-       reqVO.setTeacherId(null);
-
-       // 调用
-       PageResult<CoursePlanDO> pageResult = coursePlanService.getCoursePlanPage(reqVO);
-       // 断言
-       assertEquals(1, pageResult.getTotal());
-       assertEquals(1, pageResult.getList().size());
-       assertPojoEquals(dbCoursePlan, pageResult.getList().get(0));
     }
 
 }
