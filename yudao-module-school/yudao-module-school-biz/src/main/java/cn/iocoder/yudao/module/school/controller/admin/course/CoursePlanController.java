@@ -20,7 +20,7 @@ import cn.iocoder.yudao.module.school.dal.dataobject.subject.SubjectDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
 import cn.iocoder.yudao.module.school.enums.course.CourseNameEnum;
 import cn.iocoder.yudao.module.school.enums.course.CoursePlanQueryTypeEnum;
-import cn.iocoder.yudao.module.school.enums.course.CourseTypeNameEnum;
+import cn.iocoder.yudao.module.school.enums.course.CourseTypeEnum;
 import cn.iocoder.yudao.module.school.enums.course.TimeSlotTypeEnum;
 import cn.iocoder.yudao.module.school.service.course.CoursePlanService;
 import cn.iocoder.yudao.module.school.service.course.CourseTypeService;
@@ -42,7 +42,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -149,7 +148,7 @@ public class CoursePlanController {
             List<CoursePlanDO> morningCoursePlanList = new ArrayList<>();
             SubjectDO subjectChinese = subjectService.getSubject(CourseNameEnum.CHINESE.getName());
             SubjectDO subjectEnglish = subjectService.getSubject(CourseNameEnum.ENGLISH.getName());
-            CourseTypeDO courseType = courseTypeService.getCourseType(CourseTypeNameEnum.MORNING.getName());
+            CourseTypeDO courseType = courseTypeService.getCourseType(CourseTypeEnum.MORNING.getName());
             if (teacherService.hasSubject(reqVO.getTeacherId(), subjectChinese.getId())) {
                 morningCoursePlanList.addAll(coursePlanService.getCoursePlanList(null, null, courseType.getId(), subjectChinese.getId(), reqVO.getDate()));
             }
@@ -203,9 +202,9 @@ public class CoursePlanController {
 
             // 添加早读课程
             List<TimeSlotDO> timeSlotMorningList = timeSlotService.getTimeSlotByType(TimeSlotTypeEnum.MORNING.getType());
-            CourseTypeDO courseTypeMorning = courseTypeService.getCourseType(CourseTypeNameEnum.MORNING.getName());
+            CourseTypeDO courseTypeMorning = courseTypeService.getCourseType(CourseTypeEnum.MORNING.getName());
             if (courseTypeMorning == null) {
-                throw exception(COURSE_TYPE_NAME_NOT_EXISTS, CourseTypeNameEnum.MORNING.getName());
+                throw exception(COURSE_TYPE_NAME_NOT_EXISTS, CourseTypeEnum.MORNING.getName());
             }
             for (int week = 1; week < 7; week++) {
                 CoursePlanDO coursePlan = new CoursePlanDO();
@@ -323,9 +322,9 @@ public class CoursePlanController {
                         throw exception(TEACHER_SUBJECT_NOT_EXISTS, teacherName, subjectName);
                     }
 
-                    CourseTypeDO courseType = courseTypeService.getCourseType(CourseTypeNameEnum.NORMAL.getName());
+                    CourseTypeDO courseType = courseTypeService.getCourseType(CourseTypeEnum.NORMAL.getName());
                     if (courseType == null) {
-                        throw exception(COURSE_TYPE_NAME_NOT_EXISTS, CourseTypeNameEnum.NORMAL.getName());
+                        throw exception(COURSE_TYPE_NAME_NOT_EXISTS, CourseTypeEnum.NORMAL.getName());
                     }
 
                     coursePlan.setCourseTypeId(courseType.getId());
@@ -339,9 +338,9 @@ public class CoursePlanController {
                         if (teacher == null) {
                             throw exception(TEACHER_NAME_NOT_EXISTS, teacherName);
                         }
-                        CourseTypeDO courseType = courseTypeService.getCourseType(CourseTypeNameEnum.EVENING.getName());
+                        CourseTypeDO courseType = courseTypeService.getCourseType(CourseTypeEnum.EVENING.getName());
                         if (courseType == null) {
-                            throw exception(COURSE_TYPE_NAME_NOT_EXISTS, CourseTypeNameEnum.NORMAL.getName());
+                            throw exception(COURSE_TYPE_NAME_NOT_EXISTS, CourseTypeEnum.NORMAL.getName());
                         }
                         coursePlan.setCourseTypeId(courseType.getId());
                         coursePlan.setTeacherId(teacher.getId());
@@ -352,9 +351,9 @@ public class CoursePlanController {
                         if (teacher == null) {
                             throw exception(TEACHER_NAME_NOT_EXISTS, teacherName);
                         }
-                        CourseTypeDO courseType = courseTypeService.getCourseType(CourseTypeNameEnum.SELF.getName());
+                        CourseTypeDO courseType = courseTypeService.getCourseType(CourseTypeEnum.SELF.getName());
                         if (courseType == null) {
-                            throw exception(COURSE_TYPE_NAME_NOT_EXISTS, CourseTypeNameEnum.NORMAL.getName());
+                            throw exception(COURSE_TYPE_NAME_NOT_EXISTS, CourseTypeEnum.NORMAL.getName());
                         }
                         coursePlan.setCourseTypeId(courseType.getId());
                         coursePlan.setTeacherId(teacher.getId());

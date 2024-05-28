@@ -47,5 +47,8 @@ public interface ErrorCodeConstants {
     ErrorCode COURSE_PLAN_IMPORT_TIME_SLOT_SORT_NOT_EXISTS = new ErrorCode(100600202, "导入文件中sheet页({})中的课程节次(sort={})不存在,请检查");
     ErrorCode COURSE_PLAN_IMPORT_TIME_SLOT_WEEK_ERROR = new ErrorCode(100600203, "导入文件中sheet页({})中的第({})列的星期设置错误,请检查");
     ErrorCode COURSE_PLAN_CHANGE_TEACHER_SUBJECT_ERROR = new ErrorCode(100600204, "该教师未任课该门课程,无法调整,请检查");
+    ErrorCode COURSE_PLAN_CHANGE_DATE_NOT_BETWEEN_CURRENT_COURSE_ERROR = new ErrorCode(100600205, "当前课程有效范围为:{}~{}, 调整日期超出当前课程的有效范围, 请修改课程查询日期并重新查询之后再修改");
+    ErrorCode COURSE_PLAN_SUBJECT_NOT_EXISTS = new ErrorCode(100600206, "科目不能为空");
+    ErrorCode COURSE_PLAN_TEACHER_NOT_EXISTS = new ErrorCode(100600206, "教师不能为空");
 
 }

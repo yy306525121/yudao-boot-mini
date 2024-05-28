@@ -8,11 +8,12 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum CourseTypeNameEnum {
-    MORNING("早自习"),
-    NORMAL("正课"),
-    SELF("自习课"),
-    EVENING("晚自习");
+public enum CourseTypeEnum {
+    MORNING(1,"早自习"),
+    NORMAL(2, "正课"),
+    SELF(3, "自习课"),
+    EVENING(4, "晚自习");
 
+    private final Integer type;
     private final String name;
 }

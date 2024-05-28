@@ -35,7 +35,6 @@ public class CoursePlanChangeReqVO {
     /**
      * 替换教师
      */
-    @NotNull(message = "替换教师不能为空")
     private Long toTeacherId;
 
     /**
@@ -47,7 +46,6 @@ public class CoursePlanChangeReqVO {
     /**
      * 替换课程
      */
-    @NotNull(message = "调整课程不能为空")
     private Long toSubjectId;
 
     /**
