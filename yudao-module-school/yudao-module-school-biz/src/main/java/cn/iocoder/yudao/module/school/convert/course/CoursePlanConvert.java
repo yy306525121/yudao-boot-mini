@@ -21,6 +21,21 @@ public interface CoursePlanConvert {
 
     CoursePlanRespVO convert(CoursePlanDO coursePlan);
 
+    default CoursePlanRespVO convert(CoursePlanDO coursePlan,
+                                     GradeDO grade,
+                                     TeacherDO teacher,
+                                     SubjectDO subject,
+                                     TimeSlotDO timeSlot,
+                                     CourseTypeDO courseType) {
+        CoursePlanRespVO respVO = convert(coursePlan);
+        respVO.setGrade(grade);
+        respVO.setTeacher(teacher);
+        respVO.setSubject(subject);
+        respVO.setTimeSlot(timeSlot);
+        respVO.setCourseType(courseType);
+        return respVO;
+    }
+
 
     default List<CoursePlanRespVO> convertList(List<CoursePlanDO> coursePlanList,
                                                List<GradeDO> gradeList,
@@ -35,7 +50,6 @@ public interface CoursePlanConvert {
         Map<Long, CourseTypeDO> courseTypeMap = convertMap(courseTypeList, CourseTypeDO::getId);
 
         return coursePlanList.stream().map(coursePlan -> {
-            CoursePlanRespVO respVO = convert(coursePlan);
 
             GradeDO grade = gradeMap.get(coursePlan.getGradeId());
             TeacherDO teacher = teacherMap.get(coursePlan.getTeacherId());
@@ -43,12 +57,7 @@ public interface CoursePlanConvert {
             TimeSlotDO timeSlot = timeSlotMap.get(coursePlan.getTimeSlotId());
             CourseTypeDO courseType = courseTypeMap.get(coursePlan.getCourseTypeId());
 
-            respVO.setGrade(grade);
-            respVO.setTeacher(teacher);
-            respVO.setSubject(subject);
-            respVO.setTimeSlot(timeSlot);
-            respVO.setCourseType(courseType);
-            return respVO;
+            return convert(coursePlan, grade, teacher, subject, timeSlot, courseType);
         }).toList();
     }
 }

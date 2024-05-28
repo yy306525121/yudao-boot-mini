@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.school.service.course;
 
+import cn.iocoder.yudao.module.school.controller.admin.course.vo.CoursePlanChangeReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.course.vo.CoursePlanSaveReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CoursePlanDO;
 import jakarta.validation.Valid;
@@ -60,4 +61,10 @@ public interface CoursePlanService {
      * @return 课程计划列表
      */
     List<CoursePlanDO> getCoursePlanList(Long gradeId, Long teacherId, Long courseTypeId, Long subjectId, LocalDate date);
+
+    /**
+     * 课程调整
+     * @param reqVO 课程调整信息
+     */
+    void changeCoursePlan(CoursePlanChangeReqVO reqVO);
 }

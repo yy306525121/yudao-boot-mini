@@ -120,7 +120,7 @@ public class CourseTypeServiceImpl implements CourseTypeService {
 
     @Override
     public List<CourseTypeDO> getAll() {
-        return courseTypeMapper.selectList();
+        return courseTypeMapper.selectAll();
     }
 
 }

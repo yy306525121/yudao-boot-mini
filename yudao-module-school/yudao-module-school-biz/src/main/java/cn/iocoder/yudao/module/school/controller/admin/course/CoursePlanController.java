@@ -108,7 +108,22 @@ public class CoursePlanController {
     @PreAuthorize("@ss.hasPermission('school:course-plan:query')")
     public CommonResult<CoursePlanRespVO> getCoursePlan(@RequestParam("id") Long id) {
         CoursePlanDO coursePlan = coursePlanService.getCoursePlan(id);
-        return success(BeanUtils.toBean(coursePlan, CoursePlanRespVO.class));
+        GradeDO grade = gradeService.getGrade(coursePlan.getGradeId());
+        TimeSlotDO timeSlot = timeSlotService.getTimeSlot(coursePlan.getTimeSlotId());
+        CourseTypeDO courseType = courseTypeService.getCourseType(coursePlan.getCourseTypeId());
+
+        TeacherDO teacher = null;
+        SubjectDO subject = null;
+
+        if (coursePlan.getTeacherId() != null) {
+            teacher = teacherService.getTeacher(coursePlan.getTeacherId());
+        }
+        if (coursePlan.getSubjectId() != null) {
+            subject = subjectService.getSubject(coursePlan.getSubjectId());
+        }
+
+
+        return success(CoursePlanConvert.INSTANCE.convert(coursePlan, grade, teacher, subject, timeSlot, courseType));
     }
 
     @GetMapping("/list")
@@ -220,21 +235,8 @@ public class CoursePlanController {
     @PostMapping("/change")
     @Operation(summary = "调整课程计划")
     @PreAuthorize("@ss.hasPermission('school:course-plan:change')")
-    public CommonResult<Boolean> createCoursePlan(@Valid @RequestBody CoursePlanChangeReqVO reqVO) {
-        // 调课日期
-        LocalDate date = reqVO.getDate();
-        // 调课班级
-        Long gradeId = reqVO.getGradeId();
-        // 调课教师
-        Long toTeacherId = reqVO.getToTeacherId();
-
-        if (reqVO.getTimeSlotId() == null && reqVO.getFromTeacherId() == null) {
-            throw exception(COURSE_PLAN_CHANGE_PARAM_NOT_EXISTS);
-        }
-
-        // 1.查询需要调课的原有课程
-        coursePlanService.getCoursePlanList(gradeId, null, null, null, date);
-
+    public CommonResult<Boolean> changeCoursePlan(@Valid @RequestBody CoursePlanChangeReqVO reqVO) {
+        coursePlanService.changeCoursePlan(reqVO);
         return success(true);
     }
 

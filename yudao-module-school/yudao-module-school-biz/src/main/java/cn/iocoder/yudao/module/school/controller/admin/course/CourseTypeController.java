@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.school.controller.admin.course;
 
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -9,7 +10,11 @@ import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.module.school.controller.admin.course.vo.CourseTypePageReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.course.vo.CourseTypeRespVO;
 import cn.iocoder.yudao.module.school.controller.admin.course.vo.CourseTypeSaveReqVO;
+import cn.iocoder.yudao.module.school.controller.admin.course.vo.CourseTypeSimpleRespVO;
+import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherListReqVO;
+import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherSimpleRespVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseTypeDO;
+import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
 import cn.iocoder.yudao.module.school.service.course.CourseTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -75,6 +80,13 @@ public class CourseTypeController {
     public CommonResult<PageResult<CourseTypeRespVO>> getCourseTypePage(@Valid CourseTypePageReqVO pageReqVO) {
         PageResult<CourseTypeDO> pageResult = courseTypeService.getCourseTypePage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, CourseTypeRespVO.class));
+    }
+
+    @GetMapping(value = {"/list-all-simple", "/simple-list"})
+    @Operation(summary = "获取教师精简信息列表")
+    public CommonResult<List<CourseTypeSimpleRespVO>> getSimpleCourseTypeList() {
+        List<CourseTypeDO> courseTypeList = courseTypeService.getAll();
+        return success(BeanUtils.toBean(courseTypeList, CourseTypeSimpleRespVO.class));
     }
 
     @GetMapping("/export-excel")

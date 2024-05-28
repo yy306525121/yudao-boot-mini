@@ -7,6 +7,8 @@ import cn.iocoder.yudao.module.school.controller.admin.course.vo.CourseTypePageR
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseTypeDO;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
+
 /**
  * 课程类型 Mapper
  *
@@ -24,4 +26,9 @@ public interface CourseTypeMapper extends BaseMapperX<CourseTypeDO> {
     default CourseTypeDO selectByName(String name) {
         return selectOne(CourseTypeDO::getName, name);
     };
+
+    default List<CourseTypeDO> selectAll() {
+        return selectList(new LambdaQueryWrapperX<CourseTypeDO>()
+                .orderByAsc(CourseTypeDO::getSort));
+    }
 }

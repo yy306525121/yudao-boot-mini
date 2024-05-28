@@ -11,25 +11,25 @@ import java.time.LocalDate;
 @Data
 @ToString(callSuper = true)
 public class CoursePlanChangeReqVO {
+    @NotNull(message = "课程编号不能为空")
+    private Long id;
+
     @NotNull(message = "班级不能为空")
     private Long gradeId;
 
     @NotNull(message = "开始调整日期不能为空")
     private LocalDate date;
 
-    /**
-     * 固定周，只更换当前星期的课程
-     */
+    @NotNull(message = "周不能为空")
     private Integer week;
 
-    /**
-     * 固定节次，只更换当前节次的课程
-     */
+    @NotNull(message = "课程节次不能为空")
     private Long timeSlotId;
 
     /**
      * 原有教师
      */
+    @NotNull(message = "原有教师不能为空")
     private Long fromTeacherId;
 
     /**
@@ -41,20 +41,24 @@ public class CoursePlanChangeReqVO {
     /**
      * 原有课程，为空时表示课程不变
      */
+    @NotNull(message = "原有课程不能为空")
     private Long fromSubjectId;
 
     /**
      * 替换课程
      */
+    @NotNull(message = "调整课程不能为空")
     private Long toSubjectId;
 
     /**
      * 原有课程类型， 为空时表示不替换
      */
+    @NotNull(message = "原有课程类型不能为空")
     private Long fromCourseTypeId;
 
     /**
      * 替换课程类型
      */
+    @NotNull(message = "调整课程不能为空")
     private Long toCourseTypeId;
 }
