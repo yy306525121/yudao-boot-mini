@@ -22,4 +22,7 @@ public class TeacherPageReqVO extends PageParam {
      */
     @Schema(description = "教师状态 0-在职,1-离职", example = "0", defaultValue = "0")
     private String status;
+
+    @Schema(description = "教师编号", example = "0", defaultValue = "0")
+    private Long id;
 }

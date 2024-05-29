@@ -65,4 +65,6 @@ public interface CourseTypeService {
      * @return 所有的课程类型列表
      */
     List<CourseTypeDO> getAll();
+
+    CourseTypeDO getCourseTypeByType(int type);
 }

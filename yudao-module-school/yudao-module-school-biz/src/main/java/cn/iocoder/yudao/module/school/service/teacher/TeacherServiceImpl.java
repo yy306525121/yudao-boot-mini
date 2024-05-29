@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.school.service.teacher;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherListReqVO;
@@ -22,12 +23,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.TEACHER_NAME_DUPLICATE;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.TEACHER_NOT_EXISTS;
 import static cn.iocoder.yudao.module.school.enums.LogRecordConstants.*;
@@ -134,6 +133,18 @@ public class TeacherServiceImpl implements TeacherService {
     @Override
     public boolean hasSubject(Long teacherId, Long subjectId) {
         return teacherSubjectMapper.selectOne(teacherId, subjectId) != null;
+    }
+
+    @Override
+    public List<TeacherDO> getTeacherListBySubjectIds(Collection<Long> subjectIds) {
+        if (CollUtil.isEmpty(subjectIds)) {
+            return Collections.emptyList();
+        }
+        Set<Long> teacherIds = convertSet(teacherSubjectMapper.selectListBySubjectIds(subjectIds), TeacherSubjectDO::getTeacherId);
+        if (CollUtil.isEmpty(teacherIds)) {
+            return Collections.emptyList();
+        }
+        return teacherMapper.selectBatchIds(teacherIds);
     }
 
     @VisibleForTesting

@@ -15,7 +15,7 @@ public interface TeacherMapper extends BaseMapperX<TeacherDO>{
     default PageResult<TeacherDO> selectPage(TeacherPageReqVO reqVO) {
         return selectPage(reqVO, new LambdaQueryWrapperX<TeacherDO>()
                 .likeIfPresent(TeacherDO::getName, reqVO.getName())
-                .eqIfPresent(TeacherDO::getName, reqVO.getName())
+                .eqIfPresent(TeacherDO::getId, reqVO.getId())
                 .orderByAsc(TeacherDO::getSort)
         );
     }

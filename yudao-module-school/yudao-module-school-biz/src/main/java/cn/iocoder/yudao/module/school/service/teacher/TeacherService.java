@@ -6,6 +6,7 @@ import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherPageReq
 import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherSaveReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -74,4 +75,11 @@ public interface TeacherService {
      * @return
      */
     boolean hasSubject(Long teacherId, Long subjectId);
+
+    /**
+     * 根据科目查询教师
+     * @param subjectIds 科目编号列表
+     * @return 教师列表
+     */
+    List<TeacherDO> getTeacherListBySubjectIds(Collection<Long> subjectIds);
 }

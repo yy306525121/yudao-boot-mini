@@ -6,6 +6,7 @@ import cn.iocoder.yudao.module.school.dal.dataobject.subject.TeacherSubjectDO;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.Collection;
 import java.util.List;
 
 @Mapper
@@ -23,5 +24,9 @@ public interface TeacherSubjectMapper extends BaseMapperX<TeacherSubjectDO> {
         return selectOne(new LambdaQueryWrapperX<TeacherSubjectDO>()
                 .eq(TeacherSubjectDO::getTeacherId, teacherId)
                 .eq(TeacherSubjectDO::getSubjectId, subjectId));
+    }
+
+    default List<TeacherSubjectDO> selectListBySubjectIds(Collection<Long> subjectIds) {
+        return selectList(TeacherSubjectDO::getSubjectId, subjectIds);
     }
 }

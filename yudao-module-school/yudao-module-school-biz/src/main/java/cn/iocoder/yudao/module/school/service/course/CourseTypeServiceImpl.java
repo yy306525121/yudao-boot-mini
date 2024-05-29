@@ -123,4 +123,9 @@ public class CourseTypeServiceImpl implements CourseTypeService {
         return courseTypeMapper.selectAll();
     }
 
+    @Override
+    public CourseTypeDO getCourseTypeByType(int type) {
+        return courseTypeMapper.selectOne(CourseTypeDO::getType, type);
+    }
+
 }
