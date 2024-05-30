@@ -58,9 +58,10 @@ public interface CoursePlanService {
      * @param courseTypeId 课程类型编号
      * @param subjectId 科目编号
      * @param date 日期
+     * @param week 周
      * @return 课程计划列表
      */
-    List<CoursePlanDO> getCoursePlanList(Long gradeId, Long teacherId, Long courseTypeId, Long subjectId, LocalDate date);
+    List<CoursePlanDO> getCoursePlanList(Long gradeId, Long teacherId, Long courseTypeId, Long subjectId, LocalDate date, Integer week);
 
     /**
      * 课程调整

@@ -136,13 +136,13 @@ public class CoursePlanController {
             if (reqVO.getGradeId() == null) {
                 throw exception(GRADE_NOT_EXISTS);
             }
-            coursePlanList = coursePlanService.getCoursePlanList(reqVO.getGradeId(), null, null, null, reqVO.getDate());
+            coursePlanList = coursePlanService.getCoursePlanList(reqVO.getGradeId(), null, null, null, reqVO.getDate(), null);
         } else {
             // 按教师查询课程表
             if (reqVO.getTeacherId() == null) {
                 throw exception(TEACHER_NOT_EXISTS);
             }
-            coursePlanList = coursePlanService.getCoursePlanList(null, reqVO.getTeacherId(), null, null, reqVO.getDate());
+            coursePlanList = coursePlanService.getCoursePlanList(null, reqVO.getTeacherId(), null, null, reqVO.getDate(), null);
 
             // 当按教师查询时，由于早自习无法直接挂教师Id,所以正常查询无法查询到早自习课程， 需要单独查询
             List<CoursePlanDO> morningCoursePlanList = new ArrayList<>();
@@ -150,10 +150,10 @@ public class CoursePlanController {
             SubjectDO subjectEnglish = subjectService.getSubject(CourseNameEnum.ENGLISH.getName());
             CourseTypeDO courseType = courseTypeService.getCourseType(CourseTypeEnum.MORNING.getName());
             if (teacherService.hasSubject(reqVO.getTeacherId(), subjectChinese.getId())) {
-                morningCoursePlanList.addAll(coursePlanService.getCoursePlanList(null, null, courseType.getId(), subjectChinese.getId(), reqVO.getDate()));
+                morningCoursePlanList.addAll(coursePlanService.getCoursePlanList(null, null, courseType.getId(), subjectChinese.getId(), reqVO.getDate(), null));
             }
             if (teacherService.hasSubject(reqVO.getTeacherId(), subjectEnglish.getId())) {
-                morningCoursePlanList.addAll(coursePlanService.getCoursePlanList(null, null, courseType.getId(), subjectEnglish.getId(), reqVO.getDate()));
+                morningCoursePlanList.addAll(coursePlanService.getCoursePlanList(null, null, courseType.getId(), subjectEnglish.getId(), reqVO.getDate(), null));
             }
             // 由于这里早自习查询时没有指定年级， 所以需要去重
             morningCoursePlanList = CollUtil.distinct(morningCoursePlanList, e -> StrUtil.format("{}_{}_{}_{}", e.getWeek(), e.getCourseTypeId(), e.getSubjectId(), e.getTimeSlotId()), true);

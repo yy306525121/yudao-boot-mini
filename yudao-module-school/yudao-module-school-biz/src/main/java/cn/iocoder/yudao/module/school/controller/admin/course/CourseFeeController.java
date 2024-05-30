@@ -5,10 +5,7 @@ import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-import cn.iocoder.yudao.module.school.controller.admin.course.vo.CourseFeeCalculateReqVO;
-import cn.iocoder.yudao.module.school.controller.admin.course.vo.CourseFeeListReqVO;
-import cn.iocoder.yudao.module.school.controller.admin.course.vo.CourseFeePageReqVO;
-import cn.iocoder.yudao.module.school.controller.admin.course.vo.CourseFeeRespVO;
+import cn.iocoder.yudao.module.school.controller.admin.course.vo.*;
 import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherPageReqVO;
 import cn.iocoder.yudao.module.school.convert.course.CourseFeeConvert;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseFeeDO;
@@ -27,10 +24,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -77,8 +71,8 @@ public class CourseFeeController {
 
     @PostMapping("/calculate")
     @Operation(summary = "课时费计算")
-    @PreAuthorize("@ss.hasPermission('school:course-fee:query')")
-    public CommonResult<Boolean> calculateCourseFee(@Valid CourseFeeCalculateReqVO reqVO) {
+    @PreAuthorize("@ss.hasPermission('school:course-fee:calculate')")
+    public CommonResult<Boolean> calculateCourseFee(@Valid @RequestBody CourseFeeCalculateReqVO reqVO) {
         LocalDate date = reqVO.getDate();
         LocalDate start = date.with(TemporalAdjusters.firstDayOfMonth());
         LocalDate end = date.with(TemporalAdjusters.lastDayOfMonth());
@@ -88,9 +82,35 @@ public class CourseFeeController {
 
         List<CourseFeeDO> courseFeeList = calculate(reqVO, start, end);
 
-
+        courseFeeService.createCourseFeeBatch(courseFeeList);
         return success(true);
     }
+
+    @GetMapping("/detail")
+    @Operation(summary = "课时费明细")
+    @PreAuthorize("@ss.hasPermission('school:course-fee:detail')")
+    public CommonResult<List<CourseFeeCountRespVO>> detail(@Valid CourseFeeCountReqVO reqVO) {
+        LocalDate date = reqVO.getDate();
+        LocalDate start = date.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate end = date.with(TemporalAdjusters.lastDayOfMonth());
+
+        CourseFeeListReqVO listReqVO = new CourseFeeListReqVO();
+        listReqVO.setStartDate(start);
+        listReqVO.setEndDate(end);
+        listReqVO.setTeacherId(reqVO.getTeacherId());
+        List<CourseFeeDO> list = courseFeeService.getCourseFeeList(listReqVO);
+
+        return success(CourseFeeConvert.INSTANCE.convertListGroupByDay(list));
+    }
+
+    @GetMapping("/export-excel")
+    @Operation(summary = "导出课时费明细 Excel")
+    @PreAuthorize("@ss.hasPermission('school:course-fee:export')")
+    @ApiAccessLog(operateType = EXPORT)
+    public void exportCourseFeeExcel(@Valid CourseFeePageReqVO pageReqVO,
+              HttpServletResponse response) throws IOException {
+    }
+
 
     private List<CourseFeeDO> calculate(CourseFeeCalculateReqVO reqVO, LocalDate start, LocalDate end) {
         List<CourseTypeDO> courseTypeList = courseTypeService.getAll();
@@ -100,7 +120,8 @@ public class CourseFeeController {
         List<CourseFeeDO> courseFeeList = new ArrayList<>();
         LocalDate currentDate = start;
         while (!currentDate.isAfter(end)) {
-            List<CoursePlanDO> coursePlanList = coursePlanService.getCoursePlanList(null, reqVO.getTeacherId(), null, null, currentDate);
+            int week = currentDate.getDayOfWeek().getValue();
+            List<CoursePlanDO> coursePlanList = coursePlanService.getCoursePlanList(null, reqVO.getTeacherId(), null, null, currentDate, week);
 
             // 1. 开始计算非早自习的课时费
             for (CoursePlanDO coursePlan : coursePlanList) {
@@ -110,6 +131,7 @@ public class CourseFeeController {
                 CourseTypeDO courseType = courseTypeList.stream().filter(item -> item.getId().equals(coursePlan.getCourseTypeId())).findFirst().orElseThrow();
 
                 CourseFeeDO courseFee = BeanUtils.toBean(coursePlan, CourseFeeDO.class);
+                courseFee.setId(null);
                 courseFee.setCount(courseType.getNum());
                 courseFee.setDate(currentDate);
                 courseFeeList.add(courseFee);
@@ -140,14 +162,6 @@ public class CourseFeeController {
         }
 
         return courseFeeList;
-    }
-
-    @GetMapping("/export-excel")
-    @Operation(summary = "导出课时费明细 Excel")
-    @PreAuthorize("@ss.hasPermission('school:course-fee:export')")
-    @ApiAccessLog(operateType = EXPORT)
-    public void exportCourseFeeExcel(@Valid CourseFeePageReqVO pageReqVO,
-              HttpServletResponse response) throws IOException {
     }
 
 }

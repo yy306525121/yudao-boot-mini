@@ -51,4 +51,6 @@ public interface ErrorCodeConstants {
     ErrorCode COURSE_PLAN_SUBJECT_NOT_EXISTS = new ErrorCode(100600206, "科目不能为空");
     ErrorCode COURSE_PLAN_TEACHER_NOT_EXISTS = new ErrorCode(100600206, "教师不能为空");
 
+    // ========== 临时调课规则 100700100 ==========
+    ErrorCode TRANSFER_RULE_NOT_EXISTS = new ErrorCode(100700100, "临时调课规则不存在");
 }

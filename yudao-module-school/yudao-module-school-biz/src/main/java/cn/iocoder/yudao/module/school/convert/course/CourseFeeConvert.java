@@ -1,6 +1,8 @@
 package cn.iocoder.yudao.module.school.convert.course;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.module.school.controller.admin.course.vo.CourseFeeCountRespVO;
 import cn.iocoder.yudao.module.school.controller.admin.course.vo.CourseFeeRespVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseFeeDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
@@ -8,8 +10,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Mapper
 public interface CourseFeeConvert {
@@ -36,4 +42,23 @@ public interface CourseFeeConvert {
         pageResult.setTotal(page.getTotal());
         return pageResult;
     }
+
+    default List<CourseFeeCountRespVO> convertListGroupByDay(List<CourseFeeDO> list) {
+        if (CollUtil.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+
+        List<CourseFeeCountRespVO> result = new ArrayList<>(list.size());
+
+        Map<LocalDate, BigDecimal> collect = list.stream().collect(Collectors.groupingBy(CourseFeeDO::getDate, Collectors.reducing(BigDecimal.ZERO, CourseFeeDO::getCount, BigDecimal::add)));
+
+        collect.forEach((date, count) -> {
+            CourseFeeCountRespVO respVO = new CourseFeeCountRespVO();
+            respVO.setDate(date);
+            respVO.setCount(count);
+            result.add(respVO);
+        });
+
+        return result;
+    };
 }

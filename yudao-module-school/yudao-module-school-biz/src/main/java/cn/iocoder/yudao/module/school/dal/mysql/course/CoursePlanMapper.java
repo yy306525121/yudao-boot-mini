@@ -16,13 +16,14 @@ import java.util.List;
 @Mapper
 public interface CoursePlanMapper extends BaseMapperX<CoursePlanDO> {
 
-    default List<CoursePlanDO> selectList(Long gradeId, Long teacherId, Long courseTypeId, Long subjectId, LocalDate date) {
+    default List<CoursePlanDO> selectList(Long gradeId, Long teacherId, Long courseTypeId, Long subjectId, LocalDate date, Integer week) {
         return selectList(new LambdaQueryWrapperX<CoursePlanDO>()
                 .eqIfPresent(CoursePlanDO::getGradeId, gradeId)
                 .eqIfPresent(CoursePlanDO::getTeacherId, teacherId)
                 .eqIfPresent(CoursePlanDO::getCourseTypeId, courseTypeId)
                 .eqIfPresent(CoursePlanDO::getSubjectId, subjectId)
                 .le(CoursePlanDO::getStart, date)
+                .eq(CoursePlanDO::getWeek, week)
                 .ge(CoursePlanDO::getEnd, date));
     };
 }

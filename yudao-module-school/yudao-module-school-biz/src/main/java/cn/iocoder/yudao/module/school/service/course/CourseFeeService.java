@@ -1,11 +1,10 @@
 package cn.iocoder.yudao.module.school.service.course;
 
 import cn.iocoder.yudao.module.school.controller.admin.course.vo.CourseFeeListReqVO;
-import cn.iocoder.yudao.module.school.controller.admin.course.vo.CourseFeeSaveReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseFeeDO;
-import jakarta.validation.Valid;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -14,15 +13,6 @@ import java.util.List;
  * @author yangzy
  */
 public interface CourseFeeService {
-
-    /**
-     * 创建课时费明细
-     *
-     * @param createReqVO 创建信息
-     * @return 编号
-     */
-    Long createCourseFee(@Valid CourseFeeSaveReqVO createReqVO);
-
 
     /**
      * 获得课时费明细
@@ -46,4 +36,10 @@ public interface CourseFeeService {
      * @param end 删除范围结束日期
      */
     void removeCourseFee(Long teacherId, LocalDate start, LocalDate end);
+
+    /**
+     * 批量创建课时费
+     * @param courseFeeList 课时费
+     */
+    void createCourseFeeBatch(Collection<CourseFeeDO> courseFeeList);
 }

@@ -83,8 +83,8 @@ public class CoursePlanServiceImpl implements CoursePlanService {
     }
 
     @Override
-    public List<CoursePlanDO> getCoursePlanList(Long gradeId, Long teacherId, Long courseTypeId, Long subjectId, LocalDate date) {
-        return coursePlanMapper.selectList(gradeId, teacherId, courseTypeId, subjectId, date);
+    public List<CoursePlanDO> getCoursePlanList(Long gradeId, Long teacherId, Long courseTypeId, Long subjectId, LocalDate date, Integer week) {
+        return coursePlanMapper.selectList(gradeId, teacherId, courseTypeId, subjectId, date, week);
     }
 
     @Override
