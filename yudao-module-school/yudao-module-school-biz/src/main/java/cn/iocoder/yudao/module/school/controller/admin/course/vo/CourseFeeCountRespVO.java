@@ -8,6 +8,7 @@ import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Schema(description = "管理后台 - 课时费明细 Response VO")
 @Data
@@ -18,4 +19,5 @@ public class CourseFeeCountRespVO {
 
     private BigDecimal count;
 
+    private List<CourseFeeDetailRespVO> courseFeeList;
 }

@@ -82,4 +82,11 @@ public interface TeacherService {
      * @return 教师列表
      */
     List<TeacherDO> getTeacherListBySubjectIds(Collection<Long> subjectIds);
+
+    /**
+     * 根据id批量获取教师
+     * @param teacherIds 教师编号集合
+     * @return 教师列表
+     */
+    List<TeacherDO> getTeacherListByIds(Collection<Long> teacherIds);
 }

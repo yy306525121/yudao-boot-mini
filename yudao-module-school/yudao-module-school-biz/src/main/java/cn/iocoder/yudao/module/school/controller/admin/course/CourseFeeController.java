@@ -11,11 +11,17 @@ import cn.iocoder.yudao.module.school.convert.course.CourseFeeConvert;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseFeeDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CoursePlanDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseTypeDO;
+import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
+import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
+import cn.iocoder.yudao.module.school.dal.dataobject.subject.SubjectDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
 import cn.iocoder.yudao.module.school.enums.course.CourseTypeEnum;
 import cn.iocoder.yudao.module.school.service.course.CourseFeeService;
 import cn.iocoder.yudao.module.school.service.course.CoursePlanService;
 import cn.iocoder.yudao.module.school.service.course.CourseTypeService;
+import cn.iocoder.yudao.module.school.service.course.TimeSlotService;
+import cn.iocoder.yudao.module.school.service.grade.GradeService;
+import cn.iocoder.yudao.module.school.service.subject.SubjectService;
 import cn.iocoder.yudao.module.school.service.teacher.TeacherService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -47,6 +53,9 @@ public class CourseFeeController {
     private final TeacherService teacherService;
     private final CoursePlanService coursePlanService;
     private final CourseTypeService courseTypeService;
+    private final GradeService gradeService;
+    private final SubjectService subjectService;
+    private final TimeSlotService timeSlotService;
 
     @GetMapping("/page")
     @Operation(summary = "获得课时费明细分页")
@@ -56,16 +65,23 @@ public class CourseFeeController {
         LocalDate startDate = date.with(TemporalAdjusters.firstDayOfMonth());
         LocalDate endDate = date.with(TemporalAdjusters.lastDayOfMonth());
 
-        TeacherPageReqVO teacherPageReqVO = new TeacherPageReqVO();
-        teacherPageReqVO.setPageNo(pageReqVO.getPageNo());
-        teacherPageReqVO.setPageSize(pageReqVO.getPageSize());
-        teacherPageReqVO.setId(pageReqVO.getTeacherId());
-        PageResult<TeacherDO> pageResult = teacherService.getTeacherPage(teacherPageReqVO);
-
         CourseFeeListReqVO listReqVO = new CourseFeeListReqVO();
         listReqVO.setStartDate(startDate);
         listReqVO.setEndDate(endDate);
+        listReqVO.setTeacherId(pageReqVO.getTeacherId());
         List<CourseFeeDO> courseFeeList = courseFeeService.getCourseFeeList(listReqVO);
+        if (CollUtil.isEmpty(courseFeeList)) {
+            return success(PageResult.empty());
+        }
+
+        List<Long> teacherIds = courseFeeList.stream().map(CourseFeeDO::getTeacherId).distinct().toList();
+        TeacherPageReqVO teacherPageReqVO = new TeacherPageReqVO();
+        teacherPageReqVO.setPageNo(pageReqVO.getPageNo());
+        teacherPageReqVO.setPageSize(pageReqVO.getPageSize());
+        teacherPageReqVO.setIds(teacherIds);
+        PageResult<TeacherDO> pageResult = teacherService.getTeacherPage(teacherPageReqVO);
+
+
         return success(CourseFeeConvert.INSTANCE.convertPage(pageResult, courseFeeList));
     }
 
@@ -100,7 +116,23 @@ public class CourseFeeController {
         listReqVO.setTeacherId(reqVO.getTeacherId());
         List<CourseFeeDO> list = courseFeeService.getCourseFeeList(listReqVO);
 
-        return success(CourseFeeConvert.INSTANCE.convertListGroupByDay(list));
+        // 获取所有相关的教师
+        List<Long> teacherIds = list.stream().map(CourseFeeDO::getTeacherId).distinct().toList();
+        List<TeacherDO> teacherList = teacherService.getTeacherListByIds(teacherIds);
+
+        // 获取所有相关的班级
+        List<Long> gradeIds = list.stream().map(CourseFeeDO::getGradeId).distinct().toList();
+        List<GradeDO> gradeList = gradeService.getGradeListByIds(gradeIds);
+
+        // 获取所有相关的课程
+        List<Long> subjectIds = list.stream().map(CourseFeeDO::getSubjectId).distinct().toList();
+        List<SubjectDO> subjectList = subjectService.getSubjectList(subjectIds);
+
+        // 获取所有相关的节次信息
+        List<Long> timeSlotIds = list.stream().map(CourseFeeDO::getTimeSlotId).distinct().toList();
+        List<TimeSlotDO> timeSlotList = timeSlotService.getTimeSlotListByIds(timeSlotIds);
+
+        return success(CourseFeeConvert.INSTANCE.convertListGroupByDay(list, teacherList, gradeList, subjectList, timeSlotList));
     }
 
     @GetMapping("/export-excel")

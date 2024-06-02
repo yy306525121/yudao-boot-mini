@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Schema(description = "管理后台 - 教师分页 Request VO")
 @Data
 @NoArgsConstructor
@@ -24,5 +26,5 @@ public class TeacherPageReqVO extends PageParam {
     private String status;
 
     @Schema(description = "教师编号", example = "0", defaultValue = "0")
-    private Long id;
+    private List<Long> ids;
 }

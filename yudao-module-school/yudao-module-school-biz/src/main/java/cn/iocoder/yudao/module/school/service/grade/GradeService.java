@@ -6,6 +6,7 @@ import cn.iocoder.yudao.module.school.controller.admin.grade.vo.GradeSaveReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
 import jakarta.validation.Valid;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -72,4 +73,10 @@ public interface GradeService {
      */
     List<GradeDO> getAll();
 
+    /**
+     * 获取班级列表
+     * @param gradeIds 班级编号集合
+     * @return 班级别表
+     */
+    List<GradeDO> getGradeListByIds(Collection<Long> gradeIds);
 }

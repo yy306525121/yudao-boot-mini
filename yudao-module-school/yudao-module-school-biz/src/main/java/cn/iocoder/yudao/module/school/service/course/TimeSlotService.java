@@ -80,4 +80,11 @@ public interface TimeSlotService {
      * @return 所有课程节次信息列表
      */
     List<TimeSlotDO> getAll();
+
+    /**
+     * 获取节次信息
+     * @param timeSlotIds 节次编号集合
+     * @return 节次信息列表
+     */
+    List<TimeSlotDO> getTimeSlotListByIds(List<Long> timeSlotIds);
 }

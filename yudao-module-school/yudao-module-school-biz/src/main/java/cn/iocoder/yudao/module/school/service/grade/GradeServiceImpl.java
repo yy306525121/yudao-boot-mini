@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.school.service.grade;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.tree.Tree;
 import cn.hutool.core.lang.tree.TreeNode;
 import cn.hutool.core.lang.tree.TreeUtil;
@@ -183,6 +184,14 @@ public class GradeServiceImpl implements GradeService {
     @Override
     public List<GradeDO> getAll() {
         return gradeMapper.selectList();
+    }
+
+    @Override
+    public List<GradeDO> getGradeListByIds(Collection<Long> gradeIds) {
+        if (CollUtil.isEmpty(gradeIds)) {
+            return Collections.emptyList();
+        }
+        return gradeMapper.selectBatchIds(gradeIds);
     }
 
     private Function<GradeDO, TreeNode<Long>> getTreeNodeFunction() {

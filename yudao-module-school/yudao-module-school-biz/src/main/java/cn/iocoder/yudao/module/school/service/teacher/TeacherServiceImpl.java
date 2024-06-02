@@ -147,6 +147,14 @@ public class TeacherServiceImpl implements TeacherService {
         return teacherMapper.selectBatchIds(teacherIds);
     }
 
+    @Override
+    public List<TeacherDO> getTeacherListByIds(Collection<Long> teacherIds) {
+        if (CollUtil.isEmpty(teacherIds)) {
+            return Collections.emptyList();
+        }
+        return teacherMapper.selectBatchIds(teacherIds);
+    }
+
     @VisibleForTesting
     TeacherDO validateTeacherExists(Long id) {
         if (id == null) {

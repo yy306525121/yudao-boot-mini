@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.school.service.course;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.school.controller.admin.course.vo.TimeSlotListReqVO;
@@ -16,6 +17,7 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.Collections;
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -118,6 +120,14 @@ public class TimeSlotServiceImpl implements TimeSlotService {
     @Override
     public List<TimeSlotDO> getAll() {
         return timeSlotMapper.selectList();
+    }
+
+    @Override
+    public List<TimeSlotDO> getTimeSlotListByIds(List<Long> timeSlotIds) {
+        if (CollUtil.isEmpty(timeSlotIds)) {
+            return Collections.emptyList();
+        }
+        return timeSlotMapper.selectBatchIds(timeSlotIds);
     }
 
 
