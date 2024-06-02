@@ -34,6 +34,12 @@ public class TransferRuleDO extends BaseDO {
      * 调课节次
      */
     private Long timeSlotId;
+
+    /**
+     * 调课班级
+     */
+    private Long gradeId;
+
     /**
      * 调课教师ID
      */

@@ -10,6 +10,9 @@ import cn.iocoder.yudao.module.school.controller.admin.course.vo.TimeSlotRespVO;
 import cn.iocoder.yudao.module.school.controller.admin.grade.vo.GradeSimpleRespVO;
 import cn.iocoder.yudao.module.school.controller.admin.suject.vo.SubjectSimpleRespVO;
 import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherSimpleRespVO;
+import cn.iocoder.yudao.module.school.convert.grade.GradeConvert;
+import cn.iocoder.yudao.module.school.convert.subject.SubjectConvert;
+import cn.iocoder.yudao.module.school.convert.teacher.TeacherConvert;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseFeeDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
@@ -43,11 +46,11 @@ public interface CourseFeeConvert {
             respVO.setTeacher(teacherRespVO);
         }
         if (grade != null) {
-            GradeSimpleRespVO gradeRespVO = GradeConvert.INSTANCE.convert(grade);
+            GradeSimpleRespVO gradeRespVO = GradeConvert.INSTANCE.convert2(grade);
             respVO.setGrade(gradeRespVO);
         }
         if (subject != null) {
-            SubjectSimpleRespVO subjectRespVO = SubjectConvert.INSTANCE.convert(subject);
+            SubjectSimpleRespVO subjectRespVO = SubjectConvert.INSTANCE.convert2(subject);
             respVO.setSubject(subjectRespVO);
         }
         if (timeSlot != null) {

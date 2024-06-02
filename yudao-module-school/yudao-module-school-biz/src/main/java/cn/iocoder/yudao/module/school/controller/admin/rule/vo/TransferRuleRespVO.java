@@ -1,7 +1,9 @@
 package cn.iocoder.yudao.module.school.controller.admin.rule.vo;
 
+import cn.hutool.core.date.DatePattern;
 import com.alibaba.excel.annotation.ExcelIgnoreUnannotated;
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -19,7 +21,11 @@ public class TransferRuleRespVO {
 
     @Schema(description = "调课时间", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("调课时间")
+    @JsonFormat(pattern = DatePattern.NORM_DATE_PATTERN)
     private LocalDate date;
+
+    @Schema(description = "调课班级", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Long gradeId;
 
     @Schema(description = "调课节次", requiredMode = Schema.RequiredMode.REQUIRED, example = "2789")
     @ExcelProperty("调课节次")

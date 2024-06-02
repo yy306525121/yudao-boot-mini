@@ -22,8 +22,8 @@ public interface CoursePlanMapper extends BaseMapperX<CoursePlanDO> {
                 .eqIfPresent(CoursePlanDO::getTeacherId, teacherId)
                 .eqIfPresent(CoursePlanDO::getCourseTypeId, courseTypeId)
                 .eqIfPresent(CoursePlanDO::getSubjectId, subjectId)
+                .eqIfPresent(CoursePlanDO::getWeek, week)
                 .le(CoursePlanDO::getStart, date)
-                .eq(CoursePlanDO::getWeek, week)
                 .ge(CoursePlanDO::getEnd, date));
     };
 }

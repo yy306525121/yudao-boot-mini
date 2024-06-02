@@ -17,32 +17,31 @@ public class TransferRuleSaveReqVO {
     @NotNull(message = "调课时间不能为空")
     private LocalDate date;
 
+    @Schema(description = "调课班级", requiredMode = Schema.RequiredMode.REQUIRED, example = "2789")
+    @NotNull(message = "调课班级不能为空")
+    private Long gradeId;
+
     @Schema(description = "调课节次", requiredMode = Schema.RequiredMode.REQUIRED, example = "2789")
     @NotNull(message = "调课节次不能为空")
     private Long timeSlotId;
 
     @Schema(description = "调课教师ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "3036")
-    @NotNull(message = "调课教师ID不能为空")
     private Long fromTeacherId;
 
     @Schema(description = "调课教师ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "22087")
-    @NotNull(message = "调课教师ID不能为空")
+    @NotNull(message = "调课教师编号不能为空")
     private Long toTeacherId;
 
     @Schema(description = "调课课程", requiredMode = Schema.RequiredMode.REQUIRED, example = "3800")
-    @NotNull(message = "调课课程不能为空")
     private Long fromSubjectId;
 
     @Schema(description = "调课课程", requiredMode = Schema.RequiredMode.REQUIRED, example = "22369")
-    @NotNull(message = "调课课程不能为空")
     private Long toSubjectId;
 
     @Schema(description = "调课课程类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "14330")
-    @NotNull(message = "调课课程类型不能为空")
     private Long fromCourseTypeId;
 
     @Schema(description = "调课课程类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "11973")
-    @NotNull(message = "调课课程类型不能为空")
     private Long toCourseTypeId;
 
 }

@@ -6,12 +6,13 @@ import cn.iocoder.yudao.module.school.controller.admin.rule.vo.TransferRulePageR
 import cn.iocoder.yudao.module.school.controller.admin.rule.vo.TransferRuleSaveReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.rule.TransferRuleDO;
 import cn.iocoder.yudao.module.school.dal.mysql.rule.TransferRuleMapper;
-import jakarta.annotation.Resource;
+import cn.iocoder.yudao.module.school.dal.mysql.subject.TeacherSubjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.TRANSFER_RULE_NOT_EXISTS;
+import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.*;
 
 /**
  * 临时调课 Service 实现类
@@ -20,14 +21,23 @@ import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.TRANSFER_R
  */
 @Service
 @Validated
+@RequiredArgsConstructor
 public class TransferRuleServiceImpl implements TransferRuleService {
 
-    @Resource
-    private TransferRuleMapper transferRuleMapper;
+    private final TransferRuleMapper transferRuleMapper;
+    private final TeacherSubjectMapper teacherSubjectMapper;
 
     @Override
     public Long createTransferRule(TransferRuleSaveReqVO createReqVO) {
         // 插入
+        if (createReqVO.getToSubjectId() != null && teacherSubjectMapper.selectOne(createReqVO.getToTeacherId(), createReqVO.getToSubjectId()) == null) {
+            throw exception(TEACHER_SUBJECT_NOT_EXISTS);
+        }
+
+        if (transferRuleMapper.selectOne(createReqVO.getDate(), createReqVO.getGradeId(), createReqVO.getTimeSlotId()) != null) {
+            throw exception(TRANSFER_RULE_DUPLICATE);
+        }
+
         TransferRuleDO transferRule = BeanUtils.toBean(createReqVO, TransferRuleDO.class);
         transferRuleMapper.insert(transferRule);
         // 返回

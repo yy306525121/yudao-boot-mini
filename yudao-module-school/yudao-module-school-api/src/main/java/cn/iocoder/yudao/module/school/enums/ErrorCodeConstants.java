@@ -53,4 +53,5 @@ public interface ErrorCodeConstants {
 
     // ========== 临时调课规则 100700100 ==========
     ErrorCode TRANSFER_RULE_NOT_EXISTS = new ErrorCode(100700100, "临时调课规则不存在");
+    ErrorCode TRANSFER_RULE_DUPLICATE = new ErrorCode(100700101, "临时调课规则已存在");
 }
