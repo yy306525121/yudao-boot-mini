@@ -7,6 +7,9 @@ import cn.iocoder.yudao.module.school.controller.admin.rule.vo.HolidayRulePageRe
 import cn.iocoder.yudao.module.school.dal.dataobject.rule.HolidayRuleDO;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
+
 /**
  * 放假时间规则 Mapper
  *
@@ -16,13 +19,14 @@ import org.apache.ibatis.annotations.Mapper;
 public interface HolidayRuleMapper extends BaseMapperX<HolidayRuleDO> {
 
     default PageResult<HolidayRuleDO> selectPage(HolidayRulePageReqVO reqVO) {
+        LocalDate searchDate = reqVO.getDate();
+        LocalDate startDate = searchDate.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate endDate = searchDate.with(TemporalAdjusters.lastDayOfMonth());
+
         return selectPage(reqVO, new LambdaQueryWrapperX<HolidayRuleDO>()
-                .eqIfPresent(HolidayRuleDO::getGradeId, reqVO.getGradeId())
-                .betweenIfPresent(HolidayRuleDO::getStartDate, reqVO.getStartDate())
-                .eqIfPresent(HolidayRuleDO::getStartTimeSlotId, reqVO.getStartTimeSlotId())
-                .betweenIfPresent(HolidayRuleDO::getEndDate, reqVO.getEndDate())
-                .eqIfPresent(HolidayRuleDO::getEndTimeSlotId, reqVO.getEndTimeSlotId())
-                .betweenIfPresent(HolidayRuleDO::getCreateTime, reqVO.getCreateTime())
+                .between(HolidayRuleDO::getStartDate, startDate, endDate)
+                .or()
+                .between(HolidayRuleDO::getEndDate, startDate, endDate)
                 .orderByDesc(HolidayRuleDO::getId));
     }
 

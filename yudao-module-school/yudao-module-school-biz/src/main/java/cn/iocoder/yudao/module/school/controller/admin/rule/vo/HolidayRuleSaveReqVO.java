@@ -1,11 +1,10 @@
 package cn.iocoder.yudao.module.school.controller.admin.rule.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.*;
-import jakarta.validation.constraints.*;
+import java.util.Set;
 
 @Schema(description = "管理后台 - 放假时间规则新增/修改 Request VO")
 @Data
@@ -15,7 +14,7 @@ public class HolidayRuleSaveReqVO {
     private Long id;
 
     @Schema(description = "班级ID的数组json", example = "25025")
-    private String gradeId;
+    private Set<Long> gradeIds;
 
     @Schema(description = "开始日期")
     private LocalDate startDate;

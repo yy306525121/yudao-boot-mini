@@ -7,16 +7,22 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.module.school.controller.admin.rule.vo.HolidayRulePageReqVO;
+import cn.iocoder.yudao.module.school.controller.admin.rule.vo.HolidayRulePageRespVO;
 import cn.iocoder.yudao.module.school.controller.admin.rule.vo.HolidayRuleRespVO;
 import cn.iocoder.yudao.module.school.controller.admin.rule.vo.HolidayRuleSaveReqVO;
+import cn.iocoder.yudao.module.school.convert.rule.HolidayRuleConvert;
+import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
+import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.rule.HolidayRuleDO;
+import cn.iocoder.yudao.module.school.service.course.TimeSlotService;
+import cn.iocoder.yudao.module.school.service.grade.GradeService;
 import cn.iocoder.yudao.module.school.service.rule.HolidayRuleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -32,10 +38,13 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RestController
 @RequestMapping("/rule/holiday-rule")
 @Validated
+@RequiredArgsConstructor
 public class HolidayRuleController {
 
-    @Resource
-    private HolidayRuleService holidayRuleService;
+    private final HolidayRuleService holidayRuleService;
+    private final TimeSlotService timeSlotService;
+    private final GradeService gradeService;
+
 
     @PostMapping("/create")
     @Operation(summary = "创建放假时间规则")
@@ -73,9 +82,14 @@ public class HolidayRuleController {
     @GetMapping("/page")
     @Operation(summary = "获得放假时间规则分页")
     @PreAuthorize("@ss.hasPermission('rule:rule:query')")
-    public CommonResult<PageResult<HolidayRuleRespVO>> getHolidayRulePage(@Valid HolidayRulePageReqVO pageReqVO) {
+    public CommonResult<PageResult<HolidayRulePageRespVO>> getHolidayRulePage(@Valid HolidayRulePageReqVO pageReqVO) {
         PageResult<HolidayRuleDO> pageResult = holidayRuleService.getHolidayRulePage(pageReqVO);
-        return success(BeanUtils.toBean(pageResult, HolidayRuleRespVO.class));
+
+        List<TimeSlotDO> timeSlotList = timeSlotService.getAll();
+        List<GradeDO> gradeList = gradeService.getAll();
+
+
+        return success(HolidayRuleConvert.INSTANCE.convertPage(pageResult, gradeList, timeSlotList));
     }
 
     @GetMapping("/export-excel")

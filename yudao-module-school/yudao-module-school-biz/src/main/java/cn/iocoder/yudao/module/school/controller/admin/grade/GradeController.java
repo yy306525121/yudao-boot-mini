@@ -79,8 +79,8 @@ public class GradeController {
 
     @GetMapping(value = {"/list-all-simple", "/simple-list"})
     @Operation(summary = "获取年级精简信息列表")
-    public CommonResult<List<GradeSimpleRespVO>> getSimpleGradeList() {
-        List<GradeDO> list = gradeService.getGradeList(new GradeListReqVO());
+    public CommonResult<List<GradeSimpleRespVO>> getSimpleGradeList(@Valid GradeListReqVO listReqVO) {
+        List<GradeDO> list = gradeService.getGradeList(listReqVO);
         return success(BeanUtils.toBean(list, GradeSimpleRespVO.class));
     }
 

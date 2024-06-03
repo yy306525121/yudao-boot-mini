@@ -1,20 +1,20 @@
 package cn.iocoder.yudao.module.school.controller.admin.rule.vo;
 
-import cn.hutool.core.date.DatePattern;
+import cn.iocoder.yudao.module.school.controller.admin.course.vo.TimeSlotRespVO;
+import cn.iocoder.yudao.module.school.controller.admin.grade.vo.GradeRespVO;
 import com.alibaba.excel.annotation.ExcelIgnoreUnannotated;
 import com.alibaba.excel.annotation.ExcelProperty;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 
 @Schema(description = "管理后台 - 放假时间规则 Response VO")
 @Data
 @ExcelIgnoreUnannotated
-public class HolidayRuleRespVO {
+public class HolidayRulePageRespVO {
 
     @Schema(description = "ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "5080")
     @ExcelProperty("ID")
@@ -22,25 +22,23 @@ public class HolidayRuleRespVO {
 
     @Schema(description = "班级ID的数组json", example = "25025")
     @ExcelProperty("班级ID的数组json")
-    private Set<Long> gradeIds;
+    private List<GradeRespVO> gradeList;
 
     @Schema(description = "开始日期")
     @ExcelProperty("开始日期")
-    @JsonFormat(pattern = DatePattern.NORM_DATE_PATTERN)
     private LocalDate startDate;
 
     @Schema(description = "开始节次", example = "29761")
     @ExcelProperty("开始节次")
-    private Long startTimeSlotId;
+    private TimeSlotRespVO startTimeSlot;
 
     @Schema(description = "结束日期")
     @ExcelProperty("结束日期")
-    @JsonFormat(pattern = DatePattern.NORM_DATE_PATTERN)
     private LocalDate endDate;
 
     @Schema(description = "结束节次", example = "15540")
     @ExcelProperty("结束节次")
-    private Long endTimeSlotId;
+    private TimeSlotRespVO endTimeSlot;
 
     @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("创建时间")
