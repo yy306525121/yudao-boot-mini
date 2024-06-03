@@ -39,14 +39,14 @@ public class HolidayRuleController {
 
     @PostMapping("/create")
     @Operation(summary = "创建放假时间规则")
-    @PreAuthorize("@ss.hasPermission('rule:holiday-rule:create')")
+    @PreAuthorize("@ss.hasPermission('rule:rule:create')")
     public CommonResult<Long> createHolidayRule(@Valid @RequestBody HolidayRuleSaveReqVO createReqVO) {
         return success(holidayRuleService.createHolidayRule(createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新放假时间规则")
-    @PreAuthorize("@ss.hasPermission('rule:holiday-rule:update')")
+    @PreAuthorize("@ss.hasPermission('rule:rule:update')")
     public CommonResult<Boolean> updateHolidayRule(@Valid @RequestBody HolidayRuleSaveReqVO updateReqVO) {
         holidayRuleService.updateHolidayRule(updateReqVO);
         return success(true);
@@ -55,7 +55,7 @@ public class HolidayRuleController {
     @DeleteMapping("/delete")
     @Operation(summary = "删除放假时间规则")
     @Parameter(name = "id", description = "编号", required = true)
-    @PreAuthorize("@ss.hasPermission('rule:holiday-rule:delete')")
+    @PreAuthorize("@ss.hasPermission('rule:rule:delete')")
     public CommonResult<Boolean> deleteHolidayRule(@RequestParam("id") Long id) {
         holidayRuleService.deleteHolidayRule(id);
         return success(true);
@@ -64,7 +64,7 @@ public class HolidayRuleController {
     @GetMapping("/get")
     @Operation(summary = "获得放假时间规则")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
-    @PreAuthorize("@ss.hasPermission('rule:holiday-rule:query')")
+    @PreAuthorize("@ss.hasPermission('rule:rule:query')")
     public CommonResult<HolidayRuleRespVO> getHolidayRule(@RequestParam("id") Long id) {
         HolidayRuleDO holidayRule = holidayRuleService.getHolidayRule(id);
         return success(BeanUtils.toBean(holidayRule, HolidayRuleRespVO.class));
@@ -72,7 +72,7 @@ public class HolidayRuleController {
 
     @GetMapping("/page")
     @Operation(summary = "获得放假时间规则分页")
-    @PreAuthorize("@ss.hasPermission('rule:holiday-rule:query')")
+    @PreAuthorize("@ss.hasPermission('rule:rule:query')")
     public CommonResult<PageResult<HolidayRuleRespVO>> getHolidayRulePage(@Valid HolidayRulePageReqVO pageReqVO) {
         PageResult<HolidayRuleDO> pageResult = holidayRuleService.getHolidayRulePage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, HolidayRuleRespVO.class));
@@ -80,7 +80,7 @@ public class HolidayRuleController {
 
     @GetMapping("/export-excel")
     @Operation(summary = "导出放假时间规则 Excel")
-    @PreAuthorize("@ss.hasPermission('rule:holiday-rule:export')")
+    @PreAuthorize("@ss.hasPermission('rule:rule:export')")
     @ApiAccessLog(operateType = EXPORT)
     public void exportHolidayRuleExcel(@Valid HolidayRulePageReqVO pageReqVO,
               HttpServletResponse response) throws IOException {
