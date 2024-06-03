@@ -54,4 +54,7 @@ public interface ErrorCodeConstants {
     // ========== 临时调课规则 100700100 ==========
     ErrorCode TRANSFER_RULE_NOT_EXISTS = new ErrorCode(100700100, "临时调课规则不存在");
     ErrorCode TRANSFER_RULE_DUPLICATE = new ErrorCode(100700101, "临时调课规则已存在");
+
+    // ========== 放假时间规则 100800100 ==========
+    ErrorCode HOLIDAY_RULE_NOT_EXISTS = new ErrorCode(100800100, "放假时间规则不存在");
 }
