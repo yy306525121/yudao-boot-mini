@@ -4,14 +4,19 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.school.controller.admin.rule.vo.HolidayRulePageReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.rule.vo.HolidayRuleSaveReqVO;
+import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.rule.HolidayRuleDO;
+import cn.iocoder.yudao.module.school.dal.mysql.course.TimeSlotMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.rule.HolidayRuleMapper;
-import jakarta.annotation.Resource;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.LocalDate;
+
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.HOLIDAY_RULE_NOT_EXISTS;
+import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.HOLIDAY_RULE_PARAM_ERROR;
 
 
 /**
@@ -21,13 +26,15 @@ import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.HOLIDAY_RU
  */
 @Service
 @Validated
+@RequiredArgsConstructor
 public class HolidayRuleServiceImpl implements HolidayRuleService {
 
-    @Resource
-    private HolidayRuleMapper holidayRuleMapper;
+    private final HolidayRuleMapper holidayRuleMapper;
+    private final TimeSlotMapper timeSlotMapper;
 
     @Override
     public Long createHolidayRule(HolidayRuleSaveReqVO createReqVO) {
+        validateHolidayRuleParams(createReqVO);
         // 插入
         HolidayRuleDO holidayRule = BeanUtils.toBean(createReqVO, HolidayRuleDO.class);
         holidayRuleMapper.insert(holidayRule);
@@ -37,6 +44,7 @@ public class HolidayRuleServiceImpl implements HolidayRuleService {
 
     @Override
     public void updateHolidayRule(HolidayRuleSaveReqVO updateReqVO) {
+        validateHolidayRuleParams(updateReqVO);
         // 校验存在
         validateHolidayRuleExists(updateReqVO.getId());
         // 更新
@@ -52,12 +60,6 @@ public class HolidayRuleServiceImpl implements HolidayRuleService {
         holidayRuleMapper.deleteById(id);
     }
 
-    private void validateHolidayRuleExists(Long id) {
-        if (holidayRuleMapper.selectById(id) == null) {
-            throw exception(HOLIDAY_RULE_NOT_EXISTS);
-        }
-    }
-
     @Override
     public HolidayRuleDO getHolidayRule(Long id) {
         return holidayRuleMapper.selectById(id);
@@ -66,6 +68,29 @@ public class HolidayRuleServiceImpl implements HolidayRuleService {
     @Override
     public PageResult<HolidayRuleDO> getHolidayRulePage(HolidayRulePageReqVO pageReqVO) {
         return holidayRuleMapper.selectPage(pageReqVO);
+    }
+
+    private void validateHolidayRuleExists(Long id) {
+        if (holidayRuleMapper.selectById(id) == null) {
+            throw exception(HOLIDAY_RULE_NOT_EXISTS);
+        }
+    }
+
+    private void validateHolidayRuleParams(HolidayRuleSaveReqVO reqVO) {
+        LocalDate startDate = reqVO.getStartDate();
+        LocalDate endDate = reqVO.getEndDate();
+        Long startTimeSlotId = reqVO.getStartTimeSlotId();
+        Long endTimeSlotId = reqVO.getEndTimeSlotId();
+
+        if (startDate.isAfter(endDate)) {
+            throw exception(HOLIDAY_RULE_PARAM_ERROR);
+        }
+
+        TimeSlotDO startTimeSlot = timeSlotMapper.selectById(startTimeSlotId);
+        TimeSlotDO endTimeSlot = timeSlotMapper.selectById(endTimeSlotId);
+        if (startDate.isEqual(endDate) && startTimeSlot.getSort().compareTo(endTimeSlot.getSort()) <= 0) {
+            throw exception(HOLIDAY_RULE_PARAM_ERROR);
+        }
     }
 
 }

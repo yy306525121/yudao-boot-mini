@@ -35,7 +35,7 @@ public interface ErrorCodeConstants {
     ErrorCode COURSE_TYPE_NAME_DUPLICATE = new ErrorCode(100400101, "课程类型已存在");
     ErrorCode COURSE_TYPE_NAME_NOT_EXISTS = new ErrorCode(100400102, "课程类型(name={})不存在");
 
-    // ========== 课程时段 100500100 ==========
+    // ========== 课程节次 100500100 ==========
     ErrorCode TIME_SLOT_NOT_EXISTS = new ErrorCode(100500100, "课程节次不存在");
     ErrorCode TIME_SLOT_SORT_DUPLICATE = new ErrorCode(100500104, "课程节次已存在");
 
@@ -57,6 +57,7 @@ public interface ErrorCodeConstants {
 
     // ========== 放假时间规则 100800100 ==========
     ErrorCode HOLIDAY_RULE_NOT_EXISTS = new ErrorCode(100800100, "放假时间规则不存在");
+    ErrorCode HOLIDAY_RULE_PARAM_ERROR = new ErrorCode(100800101, "放假时间规则设置错误");
 
     // ========== 补课规则 100900100 ==========
     ErrorCode FILL_RULE_NOT_EXISTS = new ErrorCode(100900100, "补课规则不存在");
