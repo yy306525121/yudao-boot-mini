@@ -91,18 +91,4 @@ public class HolidayRuleController {
 
         return success(HolidayRuleConvert.INSTANCE.convertPage(pageResult, gradeList, timeSlotList));
     }
-
-    @GetMapping("/export-excel")
-    @Operation(summary = "导出放假时间规则 Excel")
-    @PreAuthorize("@ss.hasPermission('rule:rule:export')")
-    @ApiAccessLog(operateType = EXPORT)
-    public void exportHolidayRuleExcel(@Valid HolidayRulePageReqVO pageReqVO,
-              HttpServletResponse response) throws IOException {
-        pageReqVO.setPageSize(PageParam.PAGE_SIZE_NONE);
-        List<HolidayRuleDO> list = holidayRuleService.getHolidayRulePage(pageReqVO).getList();
-        // 导出 Excel
-        ExcelUtils.write(response, "放假时间规则.xls", "数据", HolidayRuleRespVO.class,
-                        BeanUtils.toBean(list, HolidayRuleRespVO.class));
-    }
-
 }

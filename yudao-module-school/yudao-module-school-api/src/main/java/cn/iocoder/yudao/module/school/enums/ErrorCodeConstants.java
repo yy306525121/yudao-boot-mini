@@ -57,4 +57,7 @@ public interface ErrorCodeConstants {
 
     // ========== 放假时间规则 100800100 ==========
     ErrorCode HOLIDAY_RULE_NOT_EXISTS = new ErrorCode(100800100, "放假时间规则不存在");
+
+    // ========== 补课规则 100900100 ==========
+    ErrorCode FILL_RULE_NOT_EXISTS = new ErrorCode(100900100, "补课规则不存在");
 }

@@ -102,18 +102,4 @@ public class TransferRuleController {
 
         return success(TransferRuleConvert.INSTANCE.convertPage(pageResult, gradeList, timeSlotList, teacherList, subjectList, courseTypeList));
     }
-
-    @GetMapping("/export-excel")
-    @Operation(summary = "导出临时调课 Excel")
-    @PreAuthorize("@ss.hasPermission('school:rule:export')")
-    @ApiAccessLog(operateType = EXPORT)
-    public void exportTransferRuleExcel(@Valid TransferRulePageReqVO pageReqVO,
-              HttpServletResponse response) throws IOException {
-        pageReqVO.setPageSize(PageParam.PAGE_SIZE_NONE);
-        List<TransferRuleDO> list = transferRuleService.getTransferRulePage(pageReqVO).getList();
-        // 导出 Excel
-        ExcelUtils.write(response, "临时调课.xls", "数据", TransferRuleRespVO.class,
-                        BeanUtils.toBean(list, TransferRuleRespVO.class));
-    }
-
 }
