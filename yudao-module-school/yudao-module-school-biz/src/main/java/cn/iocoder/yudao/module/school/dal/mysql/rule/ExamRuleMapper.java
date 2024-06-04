@@ -1,0 +1,35 @@
+package cn.iocoder.yudao.module.school.dal.mysql.rule;
+
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
+import java.util.*;
+
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
+import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
+import cn.iocoder.yudao.module.school.dal.dataobject.rule.ExamRuleDO;
+import cn.iocoder.yudao.module.school.dal.dataobject.rule.HolidayRuleDO;
+import org.apache.ibatis.annotations.Mapper;
+import cn.iocoder.yudao.module.school.controller.admin.rule.vo.*;
+
+/**
+ * 考试时间规则 Mapper
+ *
+ * @author yangzy
+ */
+@Mapper
+public interface ExamRuleMapper extends BaseMapperX<ExamRuleDO> {
+
+    default PageResult<ExamRuleDO> selectPage(ExamRulePageReqVO reqVO) {
+        LocalDate searchDate = reqVO.getDate();
+        LocalDate startDate = searchDate.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate endDate = searchDate.with(TemporalAdjusters.lastDayOfMonth());
+
+        return selectPage(reqVO, new LambdaQueryWrapperX<ExamRuleDO>()
+                .between(ExamRuleDO::getStartDate, startDate, endDate)
+                .or()
+                .between(ExamRuleDO::getEndDate, startDate, endDate)
+                .orderByDesc(ExamRuleDO::getId));
+    }
+
+}

@@ -60,4 +60,7 @@ public interface ErrorCodeConstants {
 
     // ========== 补课规则 100900100 ==========
     ErrorCode FILL_RULE_NOT_EXISTS = new ErrorCode(100900100, "补课规则不存在");
+
+    // ========== 考试时间规则 100110100 ==========
+    ErrorCode EXAM_RULE_NOT_EXISTS = new ErrorCode(100110100, "考试时间规则不存在");
 }
