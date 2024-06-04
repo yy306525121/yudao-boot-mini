@@ -1,10 +1,14 @@
 package cn.iocoder.yudao.module.school.service.rule;
 
+import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
+import cn.iocoder.yudao.module.school.dal.mysql.course.TimeSlotMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.*;
 import cn.iocoder.yudao.module.school.controller.admin.rule.vo.*;
 import cn.iocoder.yudao.module.school.dal.dataobject.rule.ExamRuleDO;
@@ -24,13 +28,15 @@ import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.*;
  */
 @Service
 @Validated
+@RequiredArgsConstructor
 public class ExamRuleServiceImpl implements ExamRuleService {
 
-    @Resource
-    private ExamRuleMapper examRuleMapper;
+    private final ExamRuleMapper examRuleMapper;
+    private final TimeSlotMapper timeSlotMapper;
 
     @Override
     public Long createExamRule(ExamRuleSaveReqVO createReqVO) {
+        validateExamRuleParams(createReqVO);
         // 插入
         ExamRuleDO examRule = BeanUtils.toBean(createReqVO, ExamRuleDO.class);
         examRuleMapper.insert(examRule);
@@ -42,6 +48,8 @@ public class ExamRuleServiceImpl implements ExamRuleService {
     public void updateExamRule(ExamRuleSaveReqVO updateReqVO) {
         // 校验存在
         validateExamRuleExists(updateReqVO.getId());
+        // 校验参数是否正确
+        validateExamRuleParams(updateReqVO);
         // 更新
         ExamRuleDO updateObj = BeanUtils.toBean(updateReqVO, ExamRuleDO.class);
         examRuleMapper.updateById(updateObj);
@@ -55,12 +63,6 @@ public class ExamRuleServiceImpl implements ExamRuleService {
         examRuleMapper.deleteById(id);
     }
 
-    private void validateExamRuleExists(Long id) {
-        if (examRuleMapper.selectById(id) == null) {
-            throw exception(EXAM_RULE_NOT_EXISTS);
-        }
-    }
-
     @Override
     public ExamRuleDO getExamRule(Long id) {
         return examRuleMapper.selectById(id);
@@ -70,5 +72,29 @@ public class ExamRuleServiceImpl implements ExamRuleService {
     public PageResult<ExamRuleDO> getExamRulePage(ExamRulePageReqVO pageReqVO) {
         return examRuleMapper.selectPage(pageReqVO);
     }
+
+    private void validateExamRuleExists(Long id) {
+        if (examRuleMapper.selectById(id) == null) {
+            throw exception(EXAM_RULE_NOT_EXISTS);
+        }
+    }
+
+    private void validateExamRuleParams(ExamRuleSaveReqVO reqVO) {
+        LocalDate startDate = reqVO.getStartDate();
+        LocalDate endDate = reqVO.getEndDate();
+        Long startTimeSlotId = reqVO.getStartTimeSlotId();
+        Long endTimeSlotId = reqVO.getEndTimeSlotId();
+
+        if (startDate.isAfter(endDate)) {
+            throw exception(EXAM_RULE_PARAM_ERROR);
+        }
+
+        TimeSlotDO startTimeSlot = timeSlotMapper.selectById(startTimeSlotId);
+        TimeSlotDO endTimeSlot = timeSlotMapper.selectById(endTimeSlotId);
+        if (startDate.isEqual(endDate) && startTimeSlot.getSort().compareTo(endTimeSlot.getSort()) <= 0) {
+            throw exception(EXAM_RULE_PARAM_ERROR);
+        }
+    }
+
 
 }

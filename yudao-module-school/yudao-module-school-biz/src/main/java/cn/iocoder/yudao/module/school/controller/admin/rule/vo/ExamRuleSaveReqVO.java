@@ -15,18 +15,23 @@ public class ExamRuleSaveReqVO {
     private Long id;
 
     @Schema(description = "班级ID")
+    @NotEmpty(message = "班级不能为空")
     private Set<Long> gradeIds;
 
     @Schema(description = "开始日期")
+    @NotNull(message = "开始日期不能为空")
     private LocalDate startDate;
 
     @Schema(description = "开始节次", example = "3236")
+    @NotNull(message = "开始节次不能为空")
     private Long startTimeSlotId;
 
     @Schema(description = "结束日期")
+    @NotNull(message = "结束日期不能为空")
     private LocalDate endDate;
 
     @Schema(description = "结束节次", example = "23910")
+    @NotNull(message = "结束节次不能为空")
     private Long endTimeSlotId;
 
 }

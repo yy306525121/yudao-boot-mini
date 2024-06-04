@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.school.service.teacher;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherListReqVO;
@@ -26,6 +27,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.TEACHER_NAME_DUPLICATE;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.TEACHER_NOT_EXISTS;
@@ -77,6 +79,7 @@ public class TeacherServiceImpl implements TeacherService {
 
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     @LogRecord(type = SCHOOL_TEACHER_TYPE, subType = SCHOOL_TEACHER_UPDATE_SUB_TYPE, bizNo = "{{#reqVO.id}}",
             success = SCHOOL_TEACHER_UPDATE_SUCCESS)
     public void updateTeacher(TeacherSaveReqVO reqVO) {
@@ -84,12 +87,33 @@ public class TeacherServiceImpl implements TeacherService {
 
         validateTeacherNameUnique(reqVO.getId(), reqVO.getName());
 
+        // 更新教师
         TeacherDO teacher = BeanUtils.toBean(reqVO, TeacherDO.class);
         teacherMapper.updateById(teacher);
+        // 更新教师科目
+        updateTeacherSubject(reqVO, teacher);
+
 
         // 3. 记录操作日志上下文
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtils.toBean(oldTeacher, TeacherSaveReqVO.class));
         LogRecordContext.putVariable("teacher", oldTeacher);
+    }
+
+    private void updateTeacherSubject(TeacherSaveReqVO reqVO, TeacherDO teacher) {
+        Long teacherId = teacher.getId();
+        Set<Long> dbSubjectIds = convertSet(teacherSubjectMapper.selectListByTeacherId(teacherId), TeacherSubjectDO::getSubjectId);
+        // 计算新增和删除的科目编号
+        Set<Long> subjectIds = CollUtil.emptyIfNull(teacher.getSubjectIds());
+        Collection<Long> createSubjectIds = CollUtil.subtract(subjectIds, dbSubjectIds);
+        Collection<Long> deleteSubjectIds = CollUtil.subtract(dbSubjectIds, subjectIds);
+        // 执行新增和删除。对于已经授权的科目，不用做任何处理
+        if (!CollectionUtil.isEmpty(createSubjectIds)) {
+            teacherSubjectMapper.insertBatch(convertList(createSubjectIds,
+                    subjectId -> new TeacherSubjectDO().setTeacherId(teacherId).setSubjectId(subjectId)));
+        }
+        if (!CollectionUtil.isEmpty(deleteSubjectIds)) {
+            teacherSubjectMapper.deleteByTeacherIdAndSubjectIds(teacherId, deleteSubjectIds);
+        }
     }
 
     @Override

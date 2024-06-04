@@ -63,4 +63,5 @@ public interface ErrorCodeConstants {
 
     // ========== 考试时间规则 100110100 ==========
     ErrorCode EXAM_RULE_NOT_EXISTS = new ErrorCode(100110100, "考试时间规则不存在");
+    ErrorCode EXAM_RULE_PARAM_ERROR = new ErrorCode(100110101, "考试时间设置错误");
 }

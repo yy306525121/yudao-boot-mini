@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.school.controller.admin.rule;
 
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.iocoder.yudao.module.school.convert.rule.ExamRuleConvert;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
@@ -17,6 +18,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.constraints.*;
 import jakarta.validation.*;
 import jakarta.servlet.http.*;
+
+import java.time.LocalDate;
 import java.util.*;
 import java.io.IOException;
 
@@ -24,12 +27,15 @@ import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.*;
+import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.EXAM_RULE_PARAM_ERROR;
 
 import cn.iocoder.yudao.module.school.controller.admin.rule.vo.*;
 import cn.iocoder.yudao.module.school.dal.dataobject.rule.ExamRuleDO;
@@ -48,14 +54,14 @@ public class ExamRuleController {
 
     @PostMapping("/create")
     @Operation(summary = "创建考试时间规则")
-    @PreAuthorize("@ss.hasPermission('school:exam-rule:create')")
+    @PreAuthorize("@ss.hasPermission('school:rule:create')")
     public CommonResult<Long> createExamRule(@Valid @RequestBody ExamRuleSaveReqVO createReqVO) {
         return success(examRuleService.createExamRule(createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新考试时间规则")
-    @PreAuthorize("@ss.hasPermission('school:exam-rule:update')")
+    @PreAuthorize("@ss.hasPermission('school:rule:update')")
     public CommonResult<Boolean> updateExamRule(@Valid @RequestBody ExamRuleSaveReqVO updateReqVO) {
         examRuleService.updateExamRule(updateReqVO);
         return success(true);
@@ -64,7 +70,7 @@ public class ExamRuleController {
     @DeleteMapping("/delete")
     @Operation(summary = "删除考试时间规则")
     @Parameter(name = "id", description = "编号", required = true)
-    @PreAuthorize("@ss.hasPermission('school:exam-rule:delete')")
+    @PreAuthorize("@ss.hasPermission('school:rule:delete')")
     public CommonResult<Boolean> deleteExamRule(@RequestParam("id") Long id) {
         examRuleService.deleteExamRule(id);
         return success(true);
@@ -73,7 +79,7 @@ public class ExamRuleController {
     @GetMapping("/get")
     @Operation(summary = "获得考试时间规则")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
-    @PreAuthorize("@ss.hasPermission('school:exam-rule:query')")
+    @PreAuthorize("@ss.hasPermission('school:rule:query')")
     public CommonResult<ExamRuleRespVO> getExamRule(@RequestParam("id") Long id) {
         ExamRuleDO examRule = examRuleService.getExamRule(id);
         return success(BeanUtils.toBean(examRule, ExamRuleRespVO.class));
@@ -81,7 +87,7 @@ public class ExamRuleController {
 
     @GetMapping("/page")
     @Operation(summary = "获得考试时间规则分页")
-    @PreAuthorize("@ss.hasPermission('school:exam-rule:query')")
+    @PreAuthorize("@ss.hasPermission('school:rule:query')")
     public CommonResult<PageResult<ExamRulePageRespVO>> getExamRulePage(@Valid ExamRulePageReqVO pageReqVO) {
         PageResult<ExamRuleDO> pageResult = examRuleService.getExamRulePage(pageReqVO);
 
@@ -90,5 +96,4 @@ public class ExamRuleController {
 
         return success(ExamRuleConvert.INSTANCE.convertPage(pageResult, gradeList, timeSlotList));
     }
-
 }

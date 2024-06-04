@@ -29,4 +29,10 @@ public interface TeacherSubjectMapper extends BaseMapperX<TeacherSubjectDO> {
     default List<TeacherSubjectDO> selectListBySubjectIds(Collection<Long> subjectIds) {
         return selectList(TeacherSubjectDO::getSubjectId, subjectIds);
     }
+
+    default void deleteByTeacherIdAndSubjectIds(Long teacherId, Collection<Long> deleteSubjectIds) {
+        delete(new LambdaQueryWrapperX<TeacherSubjectDO>()
+                .eq(TeacherSubjectDO::getTeacherId, teacherId)
+                .in(TeacherSubjectDO::getSubjectId, deleteSubjectIds));
+    }
 }
