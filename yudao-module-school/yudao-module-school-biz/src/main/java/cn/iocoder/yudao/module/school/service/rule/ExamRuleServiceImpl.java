@@ -1,25 +1,22 @@
 package cn.iocoder.yudao.module.school.service.rule;
 
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.module.school.controller.admin.rule.vo.ExamRulePageReqVO;
+import cn.iocoder.yudao.module.school.controller.admin.rule.vo.ExamRuleSaveReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
+import cn.iocoder.yudao.module.school.dal.dataobject.rule.ExamRuleDO;
 import cn.iocoder.yudao.module.school.dal.mysql.course.TimeSlotMapper;
+import cn.iocoder.yudao.module.school.dal.mysql.rule.ExamRuleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.*;
-import cn.iocoder.yudao.module.school.controller.admin.rule.vo.*;
-import cn.iocoder.yudao.module.school.dal.dataobject.rule.ExamRuleDO;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
-import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-
-import cn.iocoder.yudao.module.school.dal.mysql.rule.ExamRuleMapper;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.*;
+import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.EXAM_RULE_NOT_EXISTS;
+import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.EXAM_RULE_PARAM_ERROR;
 
 /**
  * 考试时间规则 Service 实现类
