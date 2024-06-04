@@ -15,6 +15,7 @@ public class FillRuleSaveReqVO {
     private Long id;
 
     @Schema(description = "班级ID")
+    @NotEmpty(message = "班级不能为空")
     private Set<Long> gradeIds;
 
     @Schema(description = "补课日期", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -26,9 +27,11 @@ public class FillRuleSaveReqVO {
     private Integer week;
 
     @Schema(description = "开始补课节次", example = "1285")
+    @NotNull(message = "开始补课节次不能为空")
     private Long startTimeSlotId;
 
     @Schema(description = "结束补课节次", example = "32210")
+    @NotNull(message = "结束补课节次不能为空")
     private Long endTimeSlotId;
 
 }

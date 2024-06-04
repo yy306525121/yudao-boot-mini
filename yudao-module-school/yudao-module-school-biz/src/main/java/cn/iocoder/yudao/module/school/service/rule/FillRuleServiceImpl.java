@@ -1,5 +1,8 @@
 package cn.iocoder.yudao.module.school.service.rule;
 
+import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
+import cn.iocoder.yudao.module.school.dal.mysql.course.TimeSlotMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
@@ -24,13 +27,15 @@ import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.*;
  */
 @Service
 @Validated
+@RequiredArgsConstructor
 public class FillRuleServiceImpl implements FillRuleService {
 
-    @Resource
-    private FillRuleMapper fillRuleMapper;
+    private final FillRuleMapper fillRuleMapper;
+    private final TimeSlotMapper timeSlotMapper;
 
     @Override
     public Long createFillRule(FillRuleSaveReqVO createReqVO) {
+        validateFillRuleParams(createReqVO);
         // 插入
         FillRuleDO fillRule = BeanUtils.toBean(createReqVO, FillRuleDO.class);
         fillRuleMapper.insert(fillRule);
@@ -38,8 +43,11 @@ public class FillRuleServiceImpl implements FillRuleService {
         return fillRule.getId();
     }
 
+
+
     @Override
     public void updateFillRule(FillRuleSaveReqVO updateReqVO) {
+        validateFillRuleParams(updateReqVO);
         // 校验存在
         validateFillRuleExists(updateReqVO.getId());
         // 更新
@@ -55,11 +63,6 @@ public class FillRuleServiceImpl implements FillRuleService {
         fillRuleMapper.deleteById(id);
     }
 
-    private void validateFillRuleExists(Long id) {
-        if (fillRuleMapper.selectById(id) == null) {
-            throw exception(FILL_RULE_NOT_EXISTS);
-        }
-    }
 
     @Override
     public FillRuleDO getFillRule(Long id) {
@@ -71,4 +74,18 @@ public class FillRuleServiceImpl implements FillRuleService {
         return fillRuleMapper.selectPage(pageReqVO);
     }
 
+
+    private void validateFillRuleExists(Long id) {
+        if (fillRuleMapper.selectById(id) == null) {
+            throw exception(FILL_RULE_NOT_EXISTS);
+        }
+    }
+
+    private void validateFillRuleParams(FillRuleSaveReqVO reqVO) {
+        TimeSlotDO startTimeSlot = timeSlotMapper.selectById(reqVO.getStartTimeSlotId());
+        TimeSlotDO endTimeSlot = timeSlotMapper.selectById(reqVO.getEndTimeSlotId());
+        if (startTimeSlot.getSort() >= endTimeSlot.getSort()) {
+            throw exception(FILL_RULE_PARAM_ERROR);
+        }
+    }
 }
