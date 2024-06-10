@@ -1,12 +1,13 @@
 package cn.iocoder.yudao.module.school.service.rule;
 
-import java.util.*;
-
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.school.controller.admin.rule.vo.HolidayRulePageReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.rule.vo.HolidayRuleSaveReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.rule.HolidayRuleDO;
-import jakarta.validation.*;
+import jakarta.validation.Valid;
+
+import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 放假时间规则 Service 接口
@@ -53,4 +54,11 @@ public interface HolidayRuleService {
      */
     PageResult<HolidayRuleDO> getHolidayRulePage(HolidayRulePageReqVO pageReqVO);
 
+    /**
+     * 根据时间
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    List<HolidayRuleDO> getHolidayRuleList(LocalDate startDate, LocalDate endDate);
 }

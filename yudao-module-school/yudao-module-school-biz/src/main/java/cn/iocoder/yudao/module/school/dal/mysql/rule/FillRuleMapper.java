@@ -1,15 +1,15 @@
 package cn.iocoder.yudao.module.school.dal.mysql.rule;
 
-import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
-import java.util.*;
-
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
+import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
+import cn.iocoder.yudao.module.school.controller.admin.rule.vo.FillRulePageReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.rule.FillRuleDO;
 import org.apache.ibatis.annotations.Mapper;
-import cn.iocoder.yudao.module.school.controller.admin.rule.vo.*;
+
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
+import java.util.List;
 
 /**
  * 补课规则 Mapper
@@ -29,4 +29,8 @@ public interface FillRuleMapper extends BaseMapperX<FillRuleDO> {
                 .orderByDesc(FillRuleDO::getId));
     }
 
+    default List<FillRuleDO> selectList(LocalDate startDate, LocalDate endDate) {
+        return selectList(new LambdaQueryWrapperX<FillRuleDO>()
+                .between(FillRuleDO::getDate, startDate, endDate));
+    }
 }

@@ -1,24 +1,23 @@
 package cn.iocoder.yudao.module.school.service.rule;
 
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.module.school.controller.admin.rule.vo.FillRulePageReqVO;
+import cn.iocoder.yudao.module.school.controller.admin.rule.vo.FillRuleSaveReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
+import cn.iocoder.yudao.module.school.dal.dataobject.rule.FillRuleDO;
 import cn.iocoder.yudao.module.school.dal.mysql.course.TimeSlotMapper;
+import cn.iocoder.yudao.module.school.dal.mysql.rule.FillRuleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import cn.iocoder.yudao.module.school.controller.admin.rule.vo.*;
-import cn.iocoder.yudao.module.school.dal.dataobject.rule.FillRuleDO;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
-import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-
-import cn.iocoder.yudao.module.school.dal.mysql.rule.FillRuleMapper;
+import java.time.LocalDate;
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.*;
+import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.FILL_RULE_NOT_EXISTS;
+import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.FILL_RULE_PARAM_ERROR;
 
 /**
  * 补课规则 Service 实现类
@@ -72,6 +71,11 @@ public class FillRuleServiceImpl implements FillRuleService {
     @Override
     public PageResult<FillRuleDO> getFillRulePage(FillRulePageReqVO pageReqVO) {
         return fillRuleMapper.selectPage(pageReqVO);
+    }
+
+    @Override
+    public List<FillRuleDO> getFillRuleList(LocalDate startDate, LocalDate endDate) {
+        return fillRuleMapper.selectList(startDate, endDate);
     }
 
 

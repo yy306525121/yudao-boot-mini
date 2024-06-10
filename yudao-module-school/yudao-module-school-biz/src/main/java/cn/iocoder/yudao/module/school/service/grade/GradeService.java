@@ -79,4 +79,12 @@ public interface GradeService {
      * @return 班级别表
      */
     List<GradeDO> getGradeListByIds(Collection<Long> gradeIds);
+
+
+    /**
+     * 获取所有的子班级
+     * @param gradeIds 父班级
+     * @return 父班级下的所有子班级
+     */
+    List<GradeDO> getGradeListByParentIds(Collection<Long> gradeIds);
 }

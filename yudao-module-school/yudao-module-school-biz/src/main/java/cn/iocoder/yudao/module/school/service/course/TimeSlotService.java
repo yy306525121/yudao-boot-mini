@@ -87,4 +87,17 @@ public interface TimeSlotService {
      * @return 节次信息列表
      */
     List<TimeSlotDO> getTimeSlotListByIds(List<Long> timeSlotIds);
+
+    /**
+     * 获取最后一节课的节次信息
+     * @return 最后一节课的节次信息
+     */
+    TimeSlotDO getLastTimeSlot();
+
+    /**
+     * 获取第一节课的节次信息
+     * @return 第一节课的节次信息
+     */
+    TimeSlotDO getFirstTimeSlot();
+
 }

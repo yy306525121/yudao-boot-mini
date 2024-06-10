@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.EXAM_RULE_NOT_EXISTS;
@@ -68,6 +69,11 @@ public class ExamRuleServiceImpl implements ExamRuleService {
     @Override
     public PageResult<ExamRuleDO> getExamRulePage(ExamRulePageReqVO pageReqVO) {
         return examRuleMapper.selectPage(pageReqVO);
+    }
+
+    @Override
+    public List<ExamRuleDO> getExamRuleList(LocalDate startDate, LocalDate endDate) {
+        return examRuleMapper.selectList(startDate, endDate);
     }
 
     private void validateExamRuleExists(Long id) {

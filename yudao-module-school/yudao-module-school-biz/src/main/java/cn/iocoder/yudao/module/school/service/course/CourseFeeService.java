@@ -42,4 +42,16 @@ public interface CourseFeeService {
      * @param courseFeeList 课时费
      */
     void createCourseFeeBatch(Collection<CourseFeeDO> courseFeeList);
+
+
+    /**
+     * 计算课时费
+     * @param date 计算日期
+     * @param gradeIdList 需要计算的班级（顶级班级）
+     * @param startTimeSlotId 计算开始节次
+     * @param endTimeSlotId 计算结束节次
+     * @param teacherId 计算教师
+     * @return
+     */
+    List<CourseFeeDO> calculateCourseFee(LocalDate date, Collection<Long> gradeIdList, Long startTimeSlotId, Long endTimeSlotId, Long teacherId);
 }

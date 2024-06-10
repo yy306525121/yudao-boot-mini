@@ -1,11 +1,13 @@
 package cn.iocoder.yudao.module.school.service.rule;
 
-import java.util.*;
-import jakarta.validation.*;
-import cn.iocoder.yudao.module.school.controller.admin.rule.vo.*;
-import cn.iocoder.yudao.module.school.dal.dataobject.rule.FillRuleDO;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
+import cn.iocoder.yudao.module.school.controller.admin.rule.vo.FillRulePageReqVO;
+import cn.iocoder.yudao.module.school.controller.admin.rule.vo.FillRuleSaveReqVO;
+import cn.iocoder.yudao.module.school.dal.dataobject.rule.FillRuleDO;
+import jakarta.validation.Valid;
+
+import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 补课规则 Service 接口
@@ -52,4 +54,5 @@ public interface FillRuleService {
      */
     PageResult<FillRuleDO> getFillRulePage(FillRulePageReqVO pageReqVO);
 
+    List<FillRuleDO> getFillRuleList(LocalDate startDate, LocalDate endDate);
 }

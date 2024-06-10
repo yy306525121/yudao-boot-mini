@@ -41,4 +41,16 @@ public interface TimeSlotMapper extends BaseMapperX<TimeSlotDO> {
     default List<TimeSlotDO> selectListByType(Integer type) {
         return selectList(TimeSlotDO::getType, type);
     }
+
+    default TimeSlotDO selectLast() {
+        return selectOne(new LambdaQueryWrapperX<TimeSlotDO>()
+                .orderByDesc(TimeSlotDO::getSort)
+                .last("limit 1"));
+    }
+
+    default TimeSlotDO selectFirst() {
+        return selectOne(new LambdaQueryWrapperX<TimeSlotDO>()
+                .orderByAsc(TimeSlotDO::getSort)
+                .last("limit 1"));
+    }
 }

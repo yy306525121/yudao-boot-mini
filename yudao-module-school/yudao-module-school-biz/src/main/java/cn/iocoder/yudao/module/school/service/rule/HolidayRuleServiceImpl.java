@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.HOLIDAY_RULE_NOT_EXISTS;
@@ -68,6 +69,11 @@ public class HolidayRuleServiceImpl implements HolidayRuleService {
     @Override
     public PageResult<HolidayRuleDO> getHolidayRulePage(HolidayRulePageReqVO pageReqVO) {
         return holidayRuleMapper.selectPage(pageReqVO);
+    }
+
+    @Override
+    public List<HolidayRuleDO> getHolidayRuleList(LocalDate startDate, LocalDate endDate) {
+        return holidayRuleMapper.selectList(startDate, endDate);
     }
 
     private void validateHolidayRuleExists(Long id) {

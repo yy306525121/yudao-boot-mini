@@ -130,6 +130,16 @@ public class TimeSlotServiceImpl implements TimeSlotService {
         return timeSlotMapper.selectBatchIds(timeSlotIds);
     }
 
+    @Override
+    public TimeSlotDO getLastTimeSlot() {
+        return timeSlotMapper.selectLast();
+    }
+
+    @Override
+    public TimeSlotDO getFirstTimeSlot() {
+        return timeSlotMapper.selectFirst();
+    }
+
 
     private void validateTimeSlotSortUnique(@Nullable Long id, Integer sort) {
         TimeSlotDO timeSlot = timeSlotMapper.selectBySort(sort);

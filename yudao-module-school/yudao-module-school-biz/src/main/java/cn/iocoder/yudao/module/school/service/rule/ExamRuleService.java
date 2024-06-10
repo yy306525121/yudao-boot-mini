@@ -1,11 +1,13 @@
 package cn.iocoder.yudao.module.school.service.rule;
 
-import java.util.*;
-import jakarta.validation.*;
-import cn.iocoder.yudao.module.school.controller.admin.rule.vo.*;
-import cn.iocoder.yudao.module.school.dal.dataobject.rule.ExamRuleDO;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
+import cn.iocoder.yudao.module.school.controller.admin.rule.vo.ExamRulePageReqVO;
+import cn.iocoder.yudao.module.school.controller.admin.rule.vo.ExamRuleSaveReqVO;
+import cn.iocoder.yudao.module.school.dal.dataobject.rule.ExamRuleDO;
+import jakarta.validation.Valid;
+
+import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 考试时间规则 Service 接口
@@ -52,4 +54,5 @@ public interface ExamRuleService {
      */
     PageResult<ExamRuleDO> getExamRulePage(ExamRulePageReqVO pageReqVO);
 
+    List<ExamRuleDO> getExamRuleList(LocalDate startDate, LocalDate endDate);
 }

@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
+import java.util.List;
 
 /**
  * 放假时间规则 Mapper
@@ -30,4 +31,10 @@ public interface HolidayRuleMapper extends BaseMapperX<HolidayRuleDO> {
                 .orderByDesc(HolidayRuleDO::getId));
     }
 
+    default List<HolidayRuleDO> selectList(LocalDate startDate, LocalDate endDate) {
+        return selectList(new LambdaQueryWrapperX<HolidayRuleDO>()
+                .between(HolidayRuleDO::getStartDate, startDate, endDate)
+                .or()
+                .between(HolidayRuleDO::getEndDate, startDate, endDate));
+    }
 }

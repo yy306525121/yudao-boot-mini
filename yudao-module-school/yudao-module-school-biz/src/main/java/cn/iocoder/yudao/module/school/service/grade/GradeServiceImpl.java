@@ -194,6 +194,11 @@ public class GradeServiceImpl implements GradeService {
         return gradeMapper.selectBatchIds(gradeIds);
     }
 
+    @Override
+    public List<GradeDO> getGradeListByParentIds(Collection<Long> gradeIds) {
+        return gradeMapper.selectListByParentId(gradeIds);
+    }
+
     private Function<GradeDO, TreeNode<Long>> getTreeNodeFunction() {
         return grade -> {
             TreeNode<Long> node = new TreeNode<>();
