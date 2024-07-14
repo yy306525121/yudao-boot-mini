@@ -94,7 +94,7 @@ public class HolidayRuleServiceImpl implements HolidayRuleService {
 
         TimeSlotDO startTimeSlot = timeSlotMapper.selectById(startTimeSlotId);
         TimeSlotDO endTimeSlot = timeSlotMapper.selectById(endTimeSlotId);
-        if (startDate.isEqual(endDate) && startTimeSlot.getSort().compareTo(endTimeSlot.getSort()) <= 0) {
+        if (startDate.isEqual(endDate) && startTimeSlot.getSort().compareTo(endTimeSlot.getSort()) < 0) {
             throw exception(HOLIDAY_RULE_PARAM_ERROR);
         }
     }

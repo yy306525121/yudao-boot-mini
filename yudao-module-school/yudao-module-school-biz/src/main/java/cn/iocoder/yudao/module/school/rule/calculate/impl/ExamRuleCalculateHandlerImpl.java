@@ -9,15 +9,15 @@ import cn.iocoder.yudao.module.school.dal.dataobject.course.CoursePlanDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseTypeDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
-import cn.iocoder.yudao.module.school.dal.dataobject.rule.HolidayRuleDO;
+import cn.iocoder.yudao.module.school.dal.dataobject.rule.ExamRuleDO;
 import cn.iocoder.yudao.module.school.enums.course.CourseTypeEnum;
 import cn.iocoder.yudao.module.school.enums.course.TimeSlotTypeEnum;
-import cn.iocoder.yudao.module.school.rule.calculate.BaseRuleCalculate;
+import cn.iocoder.yudao.module.school.rule.calculate.RuleCalculateHandler;
 import cn.iocoder.yudao.module.school.service.course.CoursePlanService;
 import cn.iocoder.yudao.module.school.service.course.CourseTypeService;
 import cn.iocoder.yudao.module.school.service.course.TimeSlotService;
 import cn.iocoder.yudao.module.school.service.grade.GradeService;
-import cn.iocoder.yudao.module.school.service.rule.HolidayRuleService;
+import cn.iocoder.yudao.module.school.service.rule.ExamRuleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -31,10 +31,10 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 
 @Component
-@Order(10)
+@Order(20)
 @RequiredArgsConstructor
-public class HolidayRuleCalculateImpl implements BaseRuleCalculate {
-    private final HolidayRuleService holidayRuleService;
+public class ExamRuleCalculateHandlerImpl implements RuleCalculateHandler {
+    private final ExamRuleService examRuleService;
     private final GradeService gradeService;
     private final TimeSlotService timeSlotService;
     private final CoursePlanService coursePlanService;
@@ -42,9 +42,9 @@ public class HolidayRuleCalculateImpl implements BaseRuleCalculate {
 
     @Override
     public List<CourseFeeDO> handleCourseFee(List<CourseFeeDO> courseFeeList, LocalDate startDate, LocalDate endDate) {
-        List<HolidayRuleDO> holidayRuleList = holidayRuleService.getHolidayRuleList(startDate, endDate);
+        List<ExamRuleDO> examRuleList = examRuleService.getExamRuleList(startDate, endDate);
 
-        Set<String> ignoreItemList = getIgnoreItem(holidayRuleList);
+        Set<String> ignoreItemList = getIgnoreItem(examRuleList);
 
         for (String ignoreItem : ignoreItemList) {
             String[] ignoreProps = ignoreItem.split(StrPool.UNDERLINE);
@@ -112,18 +112,18 @@ public class HolidayRuleCalculateImpl implements BaseRuleCalculate {
 
 
     /**
-     * 获取放假列表，列表item格式：yyyy-MM-dd_节次sort_班级id
+     * 获取考试列表，列表item格式：yyyy-MM-dd_节次sort_班级id
      * @param ruleList
      * @return
      */
-    private Set<String> getIgnoreItem(List<HolidayRuleDO> ruleList) {
+    private Set<String> getIgnoreItem(List<ExamRuleDO> ruleList) {
         if (CollUtil.isEmpty(ruleList)) {
             return new HashSet<>();
         }
 
         Set<String> ignoreItemList = new HashSet<>();
 
-        for (HolidayRuleDO rule : ruleList) {
+        for (ExamRuleDO rule : ruleList) {
             Set<Long> gradeIds = rule.getGradeIds();
             List<GradeDO> gradeList = gradeService.getGradeListByIds(gradeIds);
 
@@ -131,9 +131,6 @@ public class HolidayRuleCalculateImpl implements BaseRuleCalculate {
             TimeSlotDO startTimeSlot = timeSlotService.getTimeSlot(rule.getStartTimeSlotId());
             LocalDate endDate = rule.getEndDate();
             TimeSlotDO endTimeSlot = timeSlotService.getTimeSlot(rule.getEndTimeSlotId());
-
-            TimeSlotDO firstTimeSlot = timeSlotService.getFirstTimeSlot();
-            TimeSlotDO lastTimeSlot = timeSlotService.getLastTimeSlot();
 
             LocalDate tmpDate = startDate;
             while (!tmpDate.isAfter(endDate)) {

@@ -95,9 +95,11 @@ public class CoursePlanServiceImpl implements CoursePlanService {
         validateNewCoursePlanParam(reqVO);
 
         // 校验教师是否可以任课该门课程
-        TeacherSubjectDO teacherSubject = teacherSubjectMapper.selectOne(reqVO.getToTeacherId(), reqVO.getToSubjectId());
-        if (teacherSubject == null) {
-            throw exception(COURSE_PLAN_CHANGE_TEACHER_SUBJECT_ERROR);
+        if (reqVO.getToSubjectId() != null) {
+            TeacherSubjectDO teacherSubject = teacherSubjectMapper.selectOne(reqVO.getToTeacherId(), reqVO.getToSubjectId());
+            if (teacherSubject == null) {
+                throw exception(COURSE_PLAN_CHANGE_TEACHER_SUBJECT_ERROR);
+            }
         }
 
         CoursePlanDO oldCoursePlan = coursePlanMapper.selectById(reqVO.getId());
@@ -113,32 +115,40 @@ public class CoursePlanServiceImpl implements CoursePlanService {
         CoursePlanDO coursePlan = BeanUtils.toBean(oldCoursePlan, CoursePlanDO.class);
         coursePlan.setId(null);
         coursePlan.setTeacherId(reqVO.getToTeacherId());
-        coursePlan.setSubjectId(reqVO.getToSubjectId());
-        coursePlan.setCourseTypeId(reqVO.getToCourseTypeId());
         coursePlan.setStart(reqVO.getDate());
         coursePlan.setEnd(LocalDate.of(2999, 1, 1));
+        if (reqVO.getToCourseTypeId() != null) {
+            coursePlan.setCourseTypeId(reqVO.getToCourseTypeId());
+        }
+        if (reqVO.getToSubjectId() != null) {
+            coursePlan.setSubjectId(reqVO.getToSubjectId());
+        }
+
         coursePlanMapper.insert(coursePlan);
     }
 
     private void validateNewCoursePlanParam(CoursePlanChangeReqVO reqVO) {
-        CourseTypeDO courseType = courseTypeMapper.selectById(reqVO.getToCourseTypeId());
-        if (courseType.getType().equals(CourseTypeEnum.MORNING.getType()) && reqVO.getToSubjectId() == null) {
-            // 早自习课程科目不能为空
-            throw exception(COURSE_PLAN_SUBJECT_NOT_EXISTS);
-        } else if (courseType.getType().equals(CourseTypeEnum.NORMAL.getType())) {
-            // 正课教师和科目都不能为空
-            if (reqVO.getToTeacherId() == null) {
+
+        if (reqVO.getToCourseTypeId() != null) {
+            CourseTypeDO courseType = courseTypeMapper.selectById(reqVO.getToCourseTypeId());
+            if (courseType.getType().equals(CourseTypeEnum.MORNING.getType()) && reqVO.getToSubjectId() == null) {
+                // 早自习课程科目不能为空
+                throw exception(COURSE_PLAN_SUBJECT_NOT_EXISTS);
+            } else if (courseType.getType().equals(CourseTypeEnum.NORMAL.getType())) {
+                // 正课教师和科目都不能为空
+                if (reqVO.getToTeacherId() == null) {
+                    throw exception(COURSE_PLAN_TEACHER_NOT_EXISTS);
+                }
+                if (reqVO.getToSubjectId() == null) {
+                    throw exception(COURSE_PLAN_SUBJECT_NOT_EXISTS);
+                }
+            } else if (courseType.getType().equals(CourseTypeEnum.SELF.getType()) && reqVO.getToTeacherId() == null) {
+                // 自习课教师不能为空
+                throw exception(COURSE_PLAN_TEACHER_NOT_EXISTS);
+            } else if (courseType.getType().equals(CourseTypeEnum.EVENING.getType()) && reqVO.getToTeacherId() == null) {
+                // 晚自习教师不能为空
                 throw exception(COURSE_PLAN_TEACHER_NOT_EXISTS);
             }
-            if (reqVO.getToSubjectId() == null) {
-                throw exception(COURSE_PLAN_SUBJECT_NOT_EXISTS);
-            }
-        } else if (courseType.getType().equals(CourseTypeEnum.SELF.getType()) && reqVO.getToTeacherId() == null) {
-            // 自习课教师不能为空
-            throw exception(COURSE_PLAN_TEACHER_NOT_EXISTS);
-        } else if (courseType.getType().equals(CourseTypeEnum.EVENING.getType()) && reqVO.getToTeacherId() == null) {
-            // 晚自习教师不能为空
-            throw exception(COURSE_PLAN_TEACHER_NOT_EXISTS);
         }
     }
 }

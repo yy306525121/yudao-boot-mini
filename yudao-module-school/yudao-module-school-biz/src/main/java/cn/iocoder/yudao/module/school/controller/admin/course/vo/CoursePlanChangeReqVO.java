@@ -40,7 +40,6 @@ public class CoursePlanChangeReqVO {
     /**
      * 原有课程，为空时表示课程不变
      */
-    @NotNull(message = "原有课程不能为空")
     private Long fromSubjectId;
 
     /**
@@ -51,12 +50,10 @@ public class CoursePlanChangeReqVO {
     /**
      * 原有课程类型， 为空时表示不替换
      */
-    @NotNull(message = "原有课程类型不能为空")
     private Long fromCourseTypeId;
 
     /**
      * 替换课程类型
      */
-    @NotNull(message = "调整课程不能为空")
     private Long toCourseTypeId;
 }

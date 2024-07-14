@@ -9,15 +9,17 @@ import cn.iocoder.yudao.module.school.dal.dataobject.course.CoursePlanDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseTypeDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
-import cn.iocoder.yudao.module.school.dal.dataobject.rule.ExamRuleDO;
+import cn.iocoder.yudao.module.school.dal.dataobject.rule.HolidayRuleDO;
+import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
 import cn.iocoder.yudao.module.school.enums.course.CourseTypeEnum;
 import cn.iocoder.yudao.module.school.enums.course.TimeSlotTypeEnum;
-import cn.iocoder.yudao.module.school.rule.calculate.BaseRuleCalculate;
+import cn.iocoder.yudao.module.school.rule.calculate.RuleCalculateHandler;
 import cn.iocoder.yudao.module.school.service.course.CoursePlanService;
 import cn.iocoder.yudao.module.school.service.course.CourseTypeService;
 import cn.iocoder.yudao.module.school.service.course.TimeSlotService;
 import cn.iocoder.yudao.module.school.service.grade.GradeService;
-import cn.iocoder.yudao.module.school.service.rule.ExamRuleService;
+import cn.iocoder.yudao.module.school.service.rule.HolidayRuleService;
+import cn.iocoder.yudao.module.school.service.teacher.TeacherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -31,20 +33,21 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
 
 @Component
-@Order(20)
+@Order(10)
 @RequiredArgsConstructor
-public class ExamRuleCalculateImpl implements BaseRuleCalculate {
-    private final ExamRuleService examRuleService;
+public class HolidayRuleCalculateHandlerImpl implements RuleCalculateHandler {
+    private final HolidayRuleService holidayRuleService;
     private final GradeService gradeService;
     private final TimeSlotService timeSlotService;
     private final CoursePlanService coursePlanService;
     private final CourseTypeService courseTypeService;
+    private final TeacherService teacherService;
 
     @Override
     public List<CourseFeeDO> handleCourseFee(List<CourseFeeDO> courseFeeList, LocalDate startDate, LocalDate endDate) {
-        List<ExamRuleDO> examRuleList = examRuleService.getExamRuleList(startDate, endDate);
+        List<HolidayRuleDO> holidayRuleList = holidayRuleService.getHolidayRuleList(startDate, endDate);
 
-        Set<String> ignoreItemList = getIgnoreItem(examRuleList);
+        Set<String> ignoreItemList = getIgnoreItem(holidayRuleList, startDate, endDate);
 
         for (String ignoreItem : ignoreItemList) {
             String[] ignoreProps = ignoreItem.split(StrPool.UNDERLINE);
@@ -64,16 +67,19 @@ public class ExamRuleCalculateImpl implements BaseRuleCalculate {
 
                 // 获取当前节次下的所有课程计划
                 CourseTypeDO courseTypeMorning = courseTypeService.getCourseTypeByType(CourseTypeEnum.MORNING.getType());
-                List<CoursePlanDO> coursePlanList = coursePlanService.getCoursePlanList(null, null, courseTypeMorning.getId(), null, date, week);
-                coursePlanList = coursePlanList.stream().filter(item -> item.getTimeSlotId().equals(timeSlot.getId())).toList();
-                // 获取当前节次下上课的所有老师
-                Set<Long> teacherIdList = convertSet(coursePlanList, CoursePlanDO::getTeacherId);
+                List<CoursePlanDO> coursePlanList = coursePlanService.getCoursePlanList(null, null, null, null, date, week);
+                // 获取早自习的课程ID
+                List<CoursePlanDO> coursePlanMorningList = coursePlanList.stream().filter(item -> item.getTimeSlotId().equals(timeSlot.getId())).toList();
+                Set<Long> subjectIdSet = convertSet(coursePlanMorningList, CoursePlanDO::getSubjectId);
+                // 获取当前节次下需要上早自习的所有老师
+                List<TeacherDO> teacherList = teacherService.getTeacherListBySubjectIds(subjectIdSet);
+                Set<Long> teacherIdList = convertSet(teacherList, TeacherDO::getId);
 
                 for (Long teacherId : teacherIdList) {
                     boolean deleteFlag = true;
 
-                    // 获取该教师的当前日期，当前节次的所有课程计划
-                    List<CoursePlanDO> coursePlanListCurrentTeacher = coursePlanList.stream().filter(item -> item.getTeacherId().equals(teacherId)).toList();
+                    // 获取该教师的当前日期，是否存在不在当前阶段的课程计划
+                    List<CoursePlanDO> coursePlanListCurrentTeacher = coursePlanList.stream().filter(item -> item.getTeacherId() != null && item.getTeacherId().equals(teacherId)).toList();
                     // 判断是否存在不在待删班级中的课程计划
                     List<CoursePlanDO> notDeleteGradeCoursePlanList = coursePlanListCurrentTeacher.stream().filter(item -> !gradeIdList.contains(item.getGradeId())).toList();
                     if (CollUtil.isNotEmpty(notDeleteGradeCoursePlanList)) {
@@ -90,7 +96,7 @@ public class ExamRuleCalculateImpl implements BaseRuleCalculate {
                     if (deleteFlag) {
                         courseFeeList.removeIf(item ->
                                 item.getDate().equals(date) &&
-                                        gradeIdList.contains(item.getGradeId()) &&
+                                        item.getGradeId() == null &&
                                         item.getTeacherId().equals(teacherId) &&
                                         item.getTimeSlotId().equals(timeSlot.getId())
                         );
@@ -112,31 +118,36 @@ public class ExamRuleCalculateImpl implements BaseRuleCalculate {
 
 
     /**
-     * 获取考试列表，列表item格式：yyyy-MM-dd_节次sort_班级id
+     * 获取放假列表，列表item格式：yyyy-MM-dd_节次sort_班级id
      * @param ruleList
+     * @param calculateStartDate 规则生成的最小日期
+     * @param calculateEndDate 规则生成的最大日期
      * @return
      */
-    private Set<String> getIgnoreItem(List<ExamRuleDO> ruleList) {
+    private Set<String> getIgnoreItem(List<HolidayRuleDO> ruleList, LocalDate calculateStartDate, LocalDate calculateEndDate) {
         if (CollUtil.isEmpty(ruleList)) {
             return new HashSet<>();
         }
 
         Set<String> ignoreItemList = new HashSet<>();
 
-        for (ExamRuleDO rule : ruleList) {
+        for (HolidayRuleDO rule : ruleList) {
             Set<Long> gradeIds = rule.getGradeIds();
             List<GradeDO> gradeList = gradeService.getGradeListByIds(gradeIds);
 
-            LocalDate startDate = rule.getStartDate();
-            TimeSlotDO startTimeSlot = timeSlotService.getTimeSlot(rule.getStartTimeSlotId());
-            LocalDate endDate = rule.getEndDate();
-            TimeSlotDO endTimeSlot = timeSlotService.getTimeSlot(rule.getEndTimeSlotId());
+            LocalDate startDate = rule.getStartDate().isBefore(calculateStartDate) ? calculateStartDate : rule.getStartDate();
+            LocalDate endDate = rule.getEndDate().isAfter(calculateEndDate) ? calculateEndDate : rule.getEndDate();
+            TimeSlotDO ruleStartTimeSlot = timeSlotService.getTimeSlot(rule.getStartTimeSlotId());
+            TimeSlotDO ruleEndTimeSlot = timeSlotService.getTimeSlot(rule.getEndTimeSlotId());
 
             TimeSlotDO firstTimeSlot = timeSlotService.getFirstTimeSlot();
             TimeSlotDO lastTimeSlot = timeSlotService.getLastTimeSlot();
 
             LocalDate tmpDate = startDate;
             while (!tmpDate.isAfter(endDate)) {
+                TimeSlotDO startTimeSlot = tmpDate.equals(startDate) ? ruleStartTimeSlot : firstTimeSlot;
+                TimeSlotDO endTimeSlot = tmpDate.equals(endDate) ? ruleEndTimeSlot : lastTimeSlot;
+
                 for (int sort = startTimeSlot.getSort(); sort <= endTimeSlot.getSort(); sort++) {
                     for (GradeDO grade : gradeList) {
                         String dateStr = LocalDateTimeUtil.format(tmpDate, DatePattern.NORM_DATE_PATTERN);

@@ -5,7 +5,7 @@ import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.rule.FillRuleDO;
 import cn.iocoder.yudao.module.school.enums.course.TimeSlotTypeEnum;
-import cn.iocoder.yudao.module.school.rule.calculate.BaseRuleCalculate;
+import cn.iocoder.yudao.module.school.rule.calculate.RuleCalculateHandler;
 import cn.iocoder.yudao.module.school.service.course.CourseFeeService;
 import cn.iocoder.yudao.module.school.service.course.TimeSlotService;
 import cn.iocoder.yudao.module.school.service.grade.GradeService;
@@ -23,7 +23,7 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
 @Component
 @Order(30)
 @RequiredArgsConstructor
-public class FillRuleCalculateImpl implements BaseRuleCalculate {
+public class FillRuleCalculateHandlerImpl implements RuleCalculateHandler {
     private final FillRuleService fillRuleService;
     private final TimeSlotService timeSlotService;
     private final GradeService gradeService;

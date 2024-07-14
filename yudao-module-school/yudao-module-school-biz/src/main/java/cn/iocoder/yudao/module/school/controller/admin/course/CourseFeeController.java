@@ -12,9 +12,8 @@ import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.subject.SubjectDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
+import cn.iocoder.yudao.module.school.rule.calculate.RuleCalculateHandler;
 import cn.iocoder.yudao.module.school.service.course.CourseFeeService;
-import cn.iocoder.yudao.module.school.service.course.CoursePlanService;
-import cn.iocoder.yudao.module.school.service.course.CourseTypeService;
 import cn.iocoder.yudao.module.school.service.course.TimeSlotService;
 import cn.iocoder.yudao.module.school.service.grade.GradeService;
 import cn.iocoder.yudao.module.school.service.subject.SubjectService;
@@ -46,11 +45,10 @@ public class CourseFeeController {
 
     private final CourseFeeService courseFeeService;
     private final TeacherService teacherService;
-    private final CoursePlanService coursePlanService;
-    private final CourseTypeService courseTypeService;
     private final GradeService gradeService;
     private final SubjectService subjectService;
     private final TimeSlotService timeSlotService;
+    private final List<RuleCalculateHandler> calculateHandlerList;
 
     @GetMapping("/page")
     @Operation(summary = "获得课时费明细分页")
@@ -94,7 +92,10 @@ public class CourseFeeController {
         // 计算所有课时费（不包含规则设置）
         List<CourseFeeDO> courseFeeList = calculate(reqVO, start, end);
 
-
+        // 过滤放假规则
+        for (RuleCalculateHandler handler : calculateHandlerList) {
+            handler.handleCourseFee(courseFeeList, start, end);
+        }
 
         courseFeeService.createCourseFeeBatch(courseFeeList);
         return success(true);
