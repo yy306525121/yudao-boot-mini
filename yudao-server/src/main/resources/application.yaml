@@ -267,3 +267,10 @@ mzt:
   log:
     record:
       useEqualsMethod: java.time.LocalTime,java.time.Instant
+timefold:
+  solver:
+    termination:
+      spent-limit: 30s
+  solver-manager:
+    parallel-solver-count: AUTO
+

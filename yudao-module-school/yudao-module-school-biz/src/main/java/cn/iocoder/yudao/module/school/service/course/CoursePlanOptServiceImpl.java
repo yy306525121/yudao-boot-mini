@@ -1,5 +1,7 @@
 package cn.iocoder.yudao.module.school.service.course;
 
+import ai.timefold.solver.core.api.solver.SolverJob;
+import ai.timefold.solver.core.api.solver.SolverManager;
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CoursePlanDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CoursePlanOptDO;
@@ -12,22 +14,15 @@ import cn.iocoder.yudao.module.school.dal.mysql.course.TimeSlotMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.grade.GradeMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.subject.SubjectMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.teacher.TeacherMapper;
-import cn.iocoder.yudao.module.school.optplanner.domain.CoursePlanOpt;
-import cn.iocoder.yudao.module.school.optplanner.domain.TimeTableOpt;
-import cn.iocoder.yudao.module.school.optplanner.provider.TimeTableConstraintProvider;
+import cn.iocoder.yudao.module.school.timefold.domain.Lesson;
+import cn.iocoder.yudao.module.school.timefold.domain.TimeTable;
 import lombok.RequiredArgsConstructor;
-import org.optaplanner.core.api.solver.Solver;
-import org.optaplanner.core.api.solver.SolverFactory;
-import org.optaplanner.core.config.solver.SolverConfig;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.DayOfWeek;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 /**
  * 排课安排 Service 实现类
@@ -41,6 +36,7 @@ public class CoursePlanOptServiceImpl implements CoursePlanOptService {
     private final SubjectMapper subjectMapper;
     private final TeacherMapper teacherMapper;
     private final TimeSlotMapper timeSlotMapper;
+    private final SolverManager<TimeTable, String> solverManager;
 
     @Override
     public List<CoursePlanOptDO> getCoursePlanOptList() {
@@ -52,57 +48,61 @@ public class CoursePlanOptServiceImpl implements CoursePlanOptService {
         List<CoursePlanOptDO> coursePlanOptDOList = this.getCoursePlanOptList();
 
 
-        List<CoursePlanOpt> coursePlanOptList = new ArrayList<>();
-        for (CoursePlanOptDO coursePlanOptDO : coursePlanOptDOList) {
-            Long gradeId = coursePlanOptDO.getGradeId();
+        List<Lesson> lessonList = new ArrayList<>();
+        for (CoursePlanOptDO coursePlanOpt : coursePlanOptDOList) {
+            Integer countEveryWeek = coursePlanOpt.getCountEveryWeek();
+            Long gradeId = coursePlanOpt.getGradeId();
             List<GradeDO> gradeList = gradeMapper.selectListByParentId(Collections.singletonList(gradeId));
             if (CollUtil.isEmpty(gradeList)) {
                 GradeDO grade = gradeMapper.selectById(gradeId);
                 gradeList = Collections.singletonList(grade);
             }
-            SubjectDO subject = subjectMapper.selectById(coursePlanOptDO.getSubjectId());
-            TeacherDO teacher = teacherMapper.selectById(coursePlanOptDO.getTeacherId());
+            SubjectDO subject = subjectMapper.selectById(coursePlanOpt.getSubjectId());
+            TeacherDO teacher = teacherMapper.selectById(coursePlanOpt.getTeacherId());
 
-            coursePlanOptList.addAll(generateCoursePlanOptList(teacher, subject, gradeList));
+            lessonList.addAll(generateCoursePlanOptList(countEveryWeek, teacher, subject, gradeList));
         }
         long id = 0;
-        for (CoursePlanOpt coursePlanOpt : coursePlanOptList) {
-            coursePlanOpt.setId(id++);
+        for (Lesson lesson : lessonList) {
+            lesson.setId(id++);
         }
 
         List<TimeSlotDO> timeSlotList = timeSlotMapper.selectList();
         List<DayOfWeek> dayOfWeekList = Arrays.asList(DayOfWeek.values());
 
-        TimeTableOpt timeTable = new TimeTableOpt();
-        timeTable.setTimeSlotList(timeSlotList);
-        timeTable.setDayOfWeekList(dayOfWeekList);
-        timeTable.setCoursePlanOptList(coursePlanOptList);
+        TimeTable problem = new TimeTable();
+        problem.setTimeSlotList(timeSlotList);
+        problem.setDayOfWeekList(dayOfWeekList);
+        problem.setLessonList(lessonList);
 
-        SolverFactory<TimeTableOpt> solverFactory = SolverFactory.create(new SolverConfig()
-                .withSolutionClass(TimeTableOpt.class)
-                .withEntityClasses(CoursePlanOpt.class)
-                .withConstraintProviderClass(TimeTableConstraintProvider.class)
-                .withTerminationSpentLimit(Duration.ofSeconds(10))
-        );
+        UUID problemId = UUID.randomUUID();
+        SolverJob<TimeTable, String> solverJob = solverManager.solve(problemId.toString(), problem);
 
-        Solver<TimeTableOpt> solver = solverFactory.buildSolver();
-        TimeTableOpt solve = solver.solve(timeTable);
+        TimeTable solution;
+        try {
+            // Wait until the solving ends
+            solution = solverJob.getFinalBestSolution();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new IllegalStateException("Solving failed.", e);
+        }
 
 
         return null;
     }
 
-    private List<CoursePlanOpt> generateCoursePlanOptList(TeacherDO teacher, SubjectDO subject, List<GradeDO> gradeList) {
-        List<CoursePlanOpt> coursePlanOptList = new ArrayList<>();
+    private List<Lesson> generateCoursePlanOptList(Integer countEveryWeek, TeacherDO teacher, SubjectDO subject, List<GradeDO> gradeList) {
+        List<Lesson> lessonList = new ArrayList<>();
 
         for (GradeDO grade : gradeList) {
-            CoursePlanOpt coursePlanOpt = new CoursePlanOpt();
-            coursePlanOpt.setTeacher(teacher);
-            coursePlanOpt.setSubject(subject);
-            coursePlanOpt.setGrade(grade);
-            coursePlanOptList.add(coursePlanOpt);
+            for (Integer i = 0; i < countEveryWeek; i++) {
+                Lesson lesson = new Lesson();
+                lesson.setTeacher(teacher);
+                lesson.setSubject(subject);
+                lesson.setGrade(grade);
+                lessonList.add(lesson);
+            }
         }
 
-        return coursePlanOptList;
+        return lessonList;
     }
 }

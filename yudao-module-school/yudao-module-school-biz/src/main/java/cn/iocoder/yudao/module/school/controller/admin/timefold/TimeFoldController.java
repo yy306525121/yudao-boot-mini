@@ -1,4 +1,4 @@
-package cn.iocoder.yudao.module.school.controller.admin.optplanner;
+package cn.iocoder.yudao.module.school.controller.admin.timefold;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.school.service.course.CoursePlanOptService;
@@ -14,14 +14,16 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Tag(name = "管理后台 - 排课")
 @RestController
-@RequestMapping("/school/course-plan-opt")
+@RequestMapping("/school/time-fold")
 @Validated
 @RequiredArgsConstructor
-public class CoursePlanOptController {
+public class TimeFoldController {
 
     private final CoursePlanOptService coursePlanOptService;
 
-    @GetMapping("/opt")
+
+
+    @GetMapping("/scheduling")
     @Operation(summary = "排课")
     public CommonResult<Boolean> createCoursePlan() {
         coursePlanOptService.courseScheduling();

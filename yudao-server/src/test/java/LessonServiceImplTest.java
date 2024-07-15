@@ -9,7 +9,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("local")
 @SpringBootTest(classes = YudaoServerApplication.class)
-public class CoursePlanOptServiceImplTest extends BaseDbUnitTest {
+public class LessonServiceImplTest extends BaseDbUnitTest {
     @Resource
     private CoursePlanOptService coursePlanOptService;
 

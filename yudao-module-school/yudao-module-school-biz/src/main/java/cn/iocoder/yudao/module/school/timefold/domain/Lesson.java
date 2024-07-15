@@ -1,13 +1,13 @@
-package cn.iocoder.yudao.module.school.optplanner.domain;
+package cn.iocoder.yudao.module.school.timefold.domain;
 
+import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
+import ai.timefold.solver.core.api.domain.lookup.PlanningId;
+import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.subject.SubjectDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
 import lombok.Data;
-import org.optaplanner.core.api.domain.entity.PlanningEntity;
-import org.optaplanner.core.api.domain.lookup.PlanningId;
-import org.optaplanner.core.api.domain.variable.PlanningVariable;
 
 import java.time.DayOfWeek;
 
@@ -16,8 +16,7 @@ import java.time.DayOfWeek;
  */
 @Data
 @PlanningEntity
-public class CoursePlanOpt {
-
+public class Lesson {
 
     @PlanningId
     private Long id;
@@ -26,11 +25,11 @@ public class CoursePlanOpt {
 
     private TeacherDO teacher;
 
+    private GradeDO grade;
+
     @PlanningVariable
     private DayOfWeek dayOfWeek;
 
     @PlanningVariable
     private TimeSlotDO timeSlot;
-
-    private GradeDO grade;
 }

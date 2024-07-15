@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 
 @Import(CoursePlanServiceImpl.class)
-public class CoursePlanOptServiceImplTest extends BaseDbUnitTest {
+public class LessonServiceImplTest extends BaseDbUnitTest {
     @Resource
     private CoursePlanOptService coursePlanOptService;
 
