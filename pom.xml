@@ -44,6 +44,8 @@
         <spring.boot.version>3.2.2</spring.boot.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <version.org.optaplanner>9.44.0.Final</version.org.optaplanner>
     </properties>
 
     <dependencyManagement>
@@ -52,6 +54,14 @@
                 <groupId>cn.iocoder.boot</groupId>
                 <artifactId>yudao-dependencies</artifactId>
                 <version>${revision}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.optaplanner</groupId>
+                <artifactId>optaplanner-bom</artifactId>
+                <version>${version.org.optaplanner}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

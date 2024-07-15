@@ -45,4 +45,6 @@ public class TimeSlotDO extends BaseDO {
      */
     private LocalTime endTime;
 
+
+
 }
