@@ -1,8 +1,6 @@
 package cn.iocoder.yudao.server.controller;
 
-import ai.timefold.solver.core.api.solver.SolverManager;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.server.timefold.domain.TimeTable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +16,6 @@ import static cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeC
 @RestController
 @RequiredArgsConstructor
 public class DefaultController {
-    private final SolverManager<TimeTable, String> solverManager;
 
     @RequestMapping("/admin-api/bpm/**")
     public CommonResult<Boolean> bpm404() {

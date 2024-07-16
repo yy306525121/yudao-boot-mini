@@ -75,6 +75,8 @@
         <jimureport.version>1.6.6-beta2</jimureport.version>
         <xercesImpl.version>2.12.2</xercesImpl.version>
         <weixin-java.version>4.6.0</weixin-java.version>
+
+        <version.ai.timefold.solver>1.12.0</version.ai.timefold.solver>
     </properties>
 
     <dependencyManagement>
@@ -84,6 +86,14 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>ai.timefold.solver</groupId>
+                <artifactId>timefold-solver-bom</artifactId>
+                <version>${version.ai.timefold.solver}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
