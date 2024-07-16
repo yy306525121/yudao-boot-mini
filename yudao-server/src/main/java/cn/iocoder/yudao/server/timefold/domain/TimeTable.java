@@ -1,4 +1,4 @@
-package cn.iocoder.yudao.module.school.timefold.domain;
+package cn.iocoder.yudao.server.timefold.domain;
 
 import ai.timefold.solver.core.api.domain.solution.PlanningEntityCollectionProperty;
 import ai.timefold.solver.core.api.domain.solution.PlanningScore;

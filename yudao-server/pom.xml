@@ -107,6 +107,16 @@
 <!--            <version>${revision}</version>-->
 <!--        </dependency>-->
 
+        <dependency>
+            <groupId>ai.timefold.solver</groupId>
+            <artifactId>timefold-solver-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ai.timefold.solver</groupId>
+            <artifactId>timefold-solver-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- spring boot 配置所需依赖 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
