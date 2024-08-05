@@ -25,11 +25,8 @@ public interface ExamRuleMapper extends BaseMapperX<ExamRuleDO> {
         LocalDate endDate = searchDate.with(TemporalAdjusters.lastDayOfMonth());
 
         return selectPage(reqVO, new LambdaQueryWrapperX<ExamRuleDO>()
-                .ge(ExamRuleDO::getStartDate, startDate)
-                .le(ExamRuleDO::getStartDate, endDate)
-                .or()
-                .le(ExamRuleDO::getEndDate, startDate)
-                .ge(ExamRuleDO::getEndDate, endDate)
+                .or(i -> i.and(j -> j.le(ExamRuleDO::getStartDate, startDate).ge(ExamRuleDO::getEndDate, startDate))
+                        .or(j -> j.le(ExamRuleDO::getStartDate, endDate).ge(ExamRuleDO::getEndDate, endDate)))
                 .orderByDesc(ExamRuleDO::getId));
     }
 

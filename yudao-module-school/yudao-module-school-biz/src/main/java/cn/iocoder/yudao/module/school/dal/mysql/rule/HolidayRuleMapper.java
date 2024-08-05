@@ -25,18 +25,14 @@ public interface HolidayRuleMapper extends BaseMapperX<HolidayRuleDO> {
         LocalDate endDate = searchDate.with(TemporalAdjusters.lastDayOfMonth());
 
         return selectPage(reqVO, new LambdaQueryWrapperX<HolidayRuleDO>()
-                .ge(HolidayRuleDO::getStartDate, startDate)
-                .le(HolidayRuleDO::getStartDate, endDate)
-                .or()
-                .le(HolidayRuleDO::getEndDate, startDate)
-                .ge(HolidayRuleDO::getEndDate, endDate)
+                .or(i -> i.and(j -> j.le(HolidayRuleDO::getStartDate, startDate).ge(HolidayRuleDO::getEndDate, startDate))
+                        .or(j -> j.le(HolidayRuleDO::getStartDate, endDate).ge(HolidayRuleDO::getEndDate, endDate)))
                 .orderByDesc(HolidayRuleDO::getId));
     }
 
     default List<HolidayRuleDO> selectList(LocalDate startDate, LocalDate endDate) {
         return selectList(new LambdaQueryWrapperX<HolidayRuleDO>()
-                .between(HolidayRuleDO::getStartDate, startDate, endDate)
-                .or()
-                .between(HolidayRuleDO::getEndDate, startDate, endDate));
+                .or(i -> i.and(j -> j.le(HolidayRuleDO::getStartDate, startDate).ge(HolidayRuleDO::getEndDate, startDate))
+                        .or(j -> j.le(HolidayRuleDO::getStartDate, endDate).ge(HolidayRuleDO::getEndDate, endDate))));
     }
 }

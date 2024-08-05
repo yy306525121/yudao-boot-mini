@@ -145,8 +145,8 @@ public class HolidayRuleCalculateHandlerImpl implements RuleCalculateHandler {
 
             LocalDate tmpDate = startDate;
             while (!tmpDate.isAfter(endDate)) {
-                TimeSlotDO startTimeSlot = tmpDate.equals(startDate) ? ruleStartTimeSlot : firstTimeSlot;
-                TimeSlotDO endTimeSlot = tmpDate.equals(endDate) ? ruleEndTimeSlot : lastTimeSlot;
+                TimeSlotDO startTimeSlot = tmpDate.equals(rule.getStartDate()) ? ruleStartTimeSlot : firstTimeSlot;
+                TimeSlotDO endTimeSlot = tmpDate.equals(rule.getEndDate()) ? ruleEndTimeSlot : lastTimeSlot;
 
                 for (int sort = startTimeSlot.getSort(); sort <= endTimeSlot.getSort(); sort++) {
                     for (GradeDO grade : gradeList) {
