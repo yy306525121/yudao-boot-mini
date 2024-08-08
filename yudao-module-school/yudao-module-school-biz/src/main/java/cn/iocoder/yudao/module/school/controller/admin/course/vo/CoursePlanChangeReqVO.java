@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Data
 @ToString(callSuper = true)
 public class CoursePlanChangeReqVO {
-    @NotNull(message = "课程编号不能为空")
+    @NotNull(message = "课程计划编号不能为空")
     private Long id;
 
     @NotNull(message = "班级不能为空")

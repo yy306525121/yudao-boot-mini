@@ -52,4 +52,8 @@ public interface LogRecordConstants {
     String SCHOOL_TIME_SLOT_UPDATE_SUCCESS = "更新了课程节次【第{{#timeSlot.sort}}节】: {_DIFF{#updateReqVO}}";
     String SCHOOL_TIME_SLOT_DELETE_SUB_TYPE = "删除课程节次";
     String SCHOOL_TIME_SLOT_DELETE_SUCCESS = "删除了课程节次【第{{#timeSlot.sort}}节】";
+
+    // ======================= SCHOOL_COURSE_PLAN 课程计划 =======================
+    String SCHOOL_COURSE_PLAN_TYPE = "SCHOOL 课程节次";
+    String SCHOOL_COURSE_PLAN_CHANGE_SUCCESS = "更新了课程计划【班级（{{#reqVO.gradeId}}）: {_DIFF{#newCoursePlan}}】";
 }

@@ -1,14 +1,14 @@
 package cn.iocoder.yudao.module.school.dal.dataobject.rule;
 
+import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.framework.mybatis.core.type.JsonLongSetTypeHandler;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.*;
-import java.time.LocalDateTime;
-import java.time.LocalDateTime;
-import com.baomidou.mybatisplus.annotation.*;
-import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import java.util.Set;
 
 /**
  * 考试时间规则 DO
@@ -29,6 +29,7 @@ public class ExamRuleDO extends BaseDO {
      */
     @TableId
     private Long id;
+
     /**
      * 班级ID
      */

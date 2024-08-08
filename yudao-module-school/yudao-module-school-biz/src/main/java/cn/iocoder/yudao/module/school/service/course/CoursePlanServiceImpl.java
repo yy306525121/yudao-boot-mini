@@ -13,6 +13,9 @@ import cn.iocoder.yudao.module.school.dal.mysql.course.CourseTypeMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.subject.SubjectMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.subject.TeacherSubjectMapper;
 import cn.iocoder.yudao.module.school.enums.course.CourseTypeEnum;
+import com.mzt.logapi.context.LogRecordContext;
+import com.mzt.logapi.service.impl.DiffParseFunction;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +26,7 @@ import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.*;
+import static cn.iocoder.yudao.module.school.enums.LogRecordConstants.*;
 
 /**
  * 课程计划 Service 实现类
@@ -89,6 +93,8 @@ public class CoursePlanServiceImpl implements CoursePlanService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @LogRecord(type = SCHOOL_TEACHER_TYPE, subType = SCHOOL_COURSE_PLAN_TYPE, bizNo = "{{#reqVO.id}}",
+            success = SCHOOL_COURSE_PLAN_CHANGE_SUCCESS)
     public void changeCoursePlan(CoursePlanChangeReqVO reqVO) {
         LocalDate date = reqVO.getDate();
 
@@ -125,6 +131,9 @@ public class CoursePlanServiceImpl implements CoursePlanService {
         }
 
         coursePlanMapper.insert(coursePlan);
+
+        LogRecordContext.putVariable("newCoursePlan", coursePlan);
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtils.toBean(oldCoursePlan, CoursePlanDO.class));
     }
 
     private void validateNewCoursePlanParam(CoursePlanChangeReqVO reqVO) {

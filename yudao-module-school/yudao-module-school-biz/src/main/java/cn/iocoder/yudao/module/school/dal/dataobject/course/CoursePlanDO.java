@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.school.dal.dataobject.course;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.mzt.logapi.starter.annotation.DiffLogField;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -37,14 +38,17 @@ public class CoursePlanDO extends BaseDO {
     /**
      * 课程类型
      */
+    @DiffLogField(name = "课程类型")
     private Long courseTypeId;
     /**
      * 科目
      */
+    @DiffLogField(name = "科目")
     private Long subjectId;
     /**
      * 教师
      */
+    @DiffLogField(name = "教师")
     private Long teacherId;
     /**
      * 课程节次
@@ -53,10 +57,12 @@ public class CoursePlanDO extends BaseDO {
     /**
      * 课程生效日期
      */
+    @DiffLogField(name = "课程生效日期")
     private LocalDate start;
     /**
      * 课程失效日期
      */
+    @DiffLogField(name = "课程失效日期")
     private LocalDate end;
 
 
