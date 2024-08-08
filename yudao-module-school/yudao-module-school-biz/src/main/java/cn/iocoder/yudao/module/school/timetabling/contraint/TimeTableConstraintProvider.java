@@ -1,11 +1,11 @@
-package cn.iocoder.yudao.module.school.timefold.solver;
+package cn.iocoder.yudao.module.school.timetabling.contraint;
 
 import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
 import ai.timefold.solver.core.api.score.stream.Joiners;
-import cn.iocoder.yudao.module.school.timefold.domain.Lesson;
+import cn.iocoder.yudao.module.school.timetabling.domain.Lesson;
 
 public class TimeTableConstraintProvider implements ConstraintProvider {
     @Override

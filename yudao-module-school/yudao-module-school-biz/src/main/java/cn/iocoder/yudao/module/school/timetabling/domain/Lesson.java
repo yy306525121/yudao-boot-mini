@@ -1,4 +1,4 @@
-package cn.iocoder.yudao.module.school.timefold.domain;
+package cn.iocoder.yudao.module.school.timetabling.domain;
 
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.lookup.PlanningId;

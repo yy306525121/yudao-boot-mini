@@ -1,7 +1,7 @@
 package cn.iocoder.yudao.module.school.service.course;
 
-import ai.timefold.solver.core.api.solver.Solver;
-import ai.timefold.solver.core.api.solver.SolverFactory;
+import ai.timefold.solver.core.api.solver.SolverJob;
+import ai.timefold.solver.core.api.solver.SolverManager;
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CoursePlanDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CoursePlanOptDO;
@@ -14,17 +14,15 @@ import cn.iocoder.yudao.module.school.dal.mysql.course.TimeSlotMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.grade.GradeMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.subject.SubjectMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.teacher.TeacherMapper;
-import cn.iocoder.yudao.module.school.timefold.domain.Lesson;
-import cn.iocoder.yudao.module.school.timefold.domain.TimeTable;
+import cn.iocoder.yudao.module.school.timetabling.domain.Lesson;
+import cn.iocoder.yudao.module.school.timetabling.domain.TimeTable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.DayOfWeek;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 /**
  * 排课安排 Service 实现类
@@ -38,7 +36,8 @@ public class CoursePlanOptServiceImpl implements CoursePlanOptService {
     private final SubjectMapper subjectMapper;
     private final TeacherMapper teacherMapper;
     private final TimeSlotMapper timeSlotMapper;
-    private final SolverFactory<TimeTable> solverFactory;
+
+    private final SolverManager<TimeTable, UUID> solverManager;
 
     @Override
     public List<CoursePlanOptDO> getCoursePlanOptList() {
@@ -48,7 +47,6 @@ public class CoursePlanOptServiceImpl implements CoursePlanOptService {
     @Override
     public List<CoursePlanDO> courseScheduling() {
         List<CoursePlanOptDO> coursePlanOptDOList = this.getCoursePlanOptList();
-
 
         List<Lesson> lessonList = new ArrayList<>();
         for (CoursePlanOptDO coursePlanOpt : coursePlanOptDOList) {
@@ -77,8 +75,15 @@ public class CoursePlanOptServiceImpl implements CoursePlanOptService {
         problem.setDayOfWeekList(dayOfWeekList);
         problem.setLessonList(lessonList);
 
-        Solver<TimeTable> solver = solverFactory.buildSolver();
-        TimeTable solution = solver.solve(problem);
+        UUID problemId = UUID.randomUUID();
+        SolverJob<TimeTable, UUID> solverJob = solverManager.solve(problemId, problem);
+        TimeTable solution;
+        try {
+            // Wait until the solving ends
+            solution = solverJob.getFinalBestSolution();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new IllegalStateException("Solving failed.", e);
+        }
 
         return null;
     }
