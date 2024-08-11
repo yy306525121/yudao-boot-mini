@@ -139,13 +139,15 @@ public class TimetableServiceImpl implements TimetableService {
             SubjectDO subject = subjectMapper.selectById(timetableSetting.getSubjectId());
             CourseTypeDO courseType = courseTypeMapper.selectById(timetableSetting.getCourseTypeId());
 
-            for (Integer i = 0; i < count; i++) {
+            for (int i = 0; i < count; i++) {
                 Lesson lesson = new Lesson();
                 lesson.setId(UUID.randomUUID().toString());
                 lesson.setGrade(grade);
                 lesson.setTeacher(teacher);
                 lesson.setSubject(subject);
                 lesson.setCourseType(courseType);
+                lesson.setPreferWeeks(timetableSetting.getPreferWeeks());
+                lesson.setPreferTimeSlotIds(timetableSetting.getPreferTimeSlotIds());
                 lessonList.add(lesson);
             }
         }

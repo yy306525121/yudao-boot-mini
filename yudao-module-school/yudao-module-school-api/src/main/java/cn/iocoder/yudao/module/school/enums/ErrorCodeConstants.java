@@ -77,4 +77,7 @@ public interface ErrorCodeConstants {
 
     // ========== 排课结果 100140100 ==========
     ErrorCode TIMETABLE_RESULT_NOT_EXISTS = new ErrorCode(100140100, "排课结果不存在");
+
+    // ========== 排课定制 100150100 ==========
+    ErrorCode TIMETABLE_CUSTOM_NOT_EXISTS = new ErrorCode(100150100, "排课定制不存在");
 }

@@ -4,6 +4,8 @@ import com.alibaba.excel.annotation.ExcelIgnoreUnannotated;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.util.Set;
+
 @Schema(description = "管理后台 - 排课计划设置 Response VO")
 @Data
 @ExcelIgnoreUnannotated
@@ -28,4 +30,10 @@ public class TimetableSettingRespVO {
 
     @Schema(description = "每周几节课")
     private Integer countEveryWeek;
+
+    @Schema(description = "偏好星期")
+    private Set<Integer> preferWeeks;
+
+    @Schema(description = "偏好节次")
+    private Set<Long> preferTimeSlotIds;
 }

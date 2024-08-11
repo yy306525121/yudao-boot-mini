@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.Set;
+
 @Schema(description = "管理后台 - 排课计划设置新增/修改 Request VO")
 @Data
 public class TimetableSettingSaveReqVO {
@@ -37,4 +39,11 @@ public class TimetableSettingSaveReqVO {
     @DiffLogField(name = "每周课程数")
     private Integer countEveryWeek;
 
+
+    @Schema(description = "偏好星期")
+    @DiffLogField(name = "偏好星期")
+    private Set<Integer> preferWeeks;
+
+    @Schema(description = "偏好节次")
+    private Set<Long> preferTimeSlotIds;
 }

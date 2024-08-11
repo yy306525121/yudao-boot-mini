@@ -11,6 +11,7 @@ import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
 import lombok.Data;
 
 import java.time.DayOfWeek;
+import java.util.Set;
 
 /**
  * 规划实体
@@ -29,6 +30,9 @@ public class Lesson {
     private GradeDO grade;
 
     private CourseTypeDO courseType;
+
+    private Set<Integer> preferWeeks;
+    private Set<Long> preferTimeSlotIds;
 
     @PlanningVariable
     private DayOfWeek dayOfWeek;

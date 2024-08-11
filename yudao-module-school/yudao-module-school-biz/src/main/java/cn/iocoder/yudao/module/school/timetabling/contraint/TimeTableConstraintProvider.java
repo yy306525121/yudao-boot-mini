@@ -4,6 +4,7 @@ import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
+import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.module.school.enums.course.CourseTypeEnum;
 import cn.iocoder.yudao.module.school.timetabling.domain.Lesson;
 
@@ -19,7 +20,8 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
                 timeSlotNormalConflict(constraintFactory),
                 timeSlotEveningConflict(constraintFactory),
                 teacherTimeEfficiency(constraintFactory),
-                teacherTimeMaxLimit(constraintFactory)
+                teacherTimeMaxLimit(constraintFactory),
+                teacherPreferredWeekLimit(constraintFactory)
         };
     }
 
@@ -112,9 +114,29 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
     }
 
     /**
-     * 老师喜欢上课的时段
+     * 老师喜欢上课的时间
      * https://stackoverflow.com/questions/77970555/how-can-you-code-the-teachers-preferences-constraint-for-a-timetable-applicatio
      */
+    private Constraint teacherPreferredWeekLimit(ConstraintFactory constraintFactory) {
+        return constraintFactory
+                .forEach(Lesson.class)
+                .filter(lesson -> {
+                    if (CollUtil.isNotEmpty(lesson.getPreferWeeks()) && CollUtil.isNotEmpty(lesson.getPreferTimeSlotIds())) {
+                        // 同时设置了周和节次
+                        return lesson.getPreferWeeks().contains(lesson.getDayOfWeek().getValue()) && lesson.getPreferTimeSlotIds().contains(lesson.getTimeSlot().getId());
+                    } else if (CollUtil.isNotEmpty(lesson.getPreferWeeks())) {
+                        // 只设置了周
+                        return lesson.getPreferWeeks().contains(lesson.getDayOfWeek().getValue());
+                    } else if (CollUtil.isNotEmpty(lesson.getPreferTimeSlotIds())) {
+                        // 只设置了节次
+                        return lesson.getPreferTimeSlotIds().contains(lesson.getTimeSlot().getId());
+                    } else {
+                        return false;
+                    }
+                })
+                .reward(HardSoftScore.ONE_SOFT)
+                .asConstraint("teacher preferred limit");
+    }
     // Constraint maximizePreferredTimeslotAssignments(ConstraintFactory constraintFactory) {
     //     return constraintFactory.forEach(Lesson.class)
     //             .join(Teacher.class, Joiners.equal(Lesson::getTeacher, Function.identity()))

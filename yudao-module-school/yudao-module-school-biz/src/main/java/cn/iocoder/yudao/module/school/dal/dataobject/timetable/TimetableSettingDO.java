@@ -1,16 +1,21 @@
 package cn.iocoder.yudao.module.school.dal.dataobject.timetable;
 
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import cn.iocoder.yudao.framework.mybatis.core.type.JsonIntegerSetTypeHandler;
+import cn.iocoder.yudao.framework.mybatis.core.type.JsonLongSetTypeHandler;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
+
+import java.util.Set;
 
 /**
  * 排课计划设置 DO
  *
  * @author yangzy
  */
-@TableName("school_timetable_setting")
+@TableName(value = "school_timetable_setting", autoResultMap = true)
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
@@ -49,5 +54,14 @@ public class TimetableSettingDO extends BaseDO {
      * 每周几节课
      */
     private Integer countEveryWeek;
+
+    /**
+     * 喜欢上周几的课
+     */
+    @TableField(typeHandler = JsonIntegerSetTypeHandler.class)
+    private Set<Integer> preferWeeks;
+
+    @TableField(typeHandler = JsonLongSetTypeHandler.class)
+    private Set<Long> preferTimeSlotIds;
 
 }
