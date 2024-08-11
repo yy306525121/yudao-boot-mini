@@ -107,7 +107,8 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
     private Constraint teacherTimeMaxLimit(ConstraintFactory constraintFactory) {
         return constraintFactory
                 .forEach(Lesson.class)
-                .groupBy(Lesson::getDayOfWeek, Lesson::getTeacher, Lesson::getCourseType, count())
+                .filter(lesson -> CourseTypeEnum.NORMAL.getType().equals(lesson.getCourseType().getType()))
+                .groupBy(Lesson::getGrade, Lesson::getDayOfWeek, Lesson::getTeacher, count())
                 .filter((week, teacher, courseType, count) -> count > 2)
                 .penalize(HardSoftScore.ONE_HARD)
                 .asConstraint("teacher time max limit");
