@@ -1,4 +1,4 @@
-package cn.iocoder.yudao.module.solver.dal.dataobject.timetable;
+package cn.iocoder.yudao.module.school.dal.dataobject.timetable;
 
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -8,7 +8,7 @@ import lombok.*;
 /**
  * 排课DO
  */
-@TableName(value = "solver_timetable")
+@TableName(value = "school_timetable")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
@@ -19,4 +19,5 @@ public class TimetableDO extends BaseDO {
     @TableId
     private Long id;
     private String name;
+    private Integer status;
 }

@@ -126,7 +126,7 @@ public class CoursePlanController {
     }
 
     @GetMapping("/list")
-    @Operation(summary = "获得课程计划分页")
+    @Operation(summary = "获得课程计划")
     @PreAuthorize("@ss.hasPermission('school:course-plan:query')")
     public CommonResult<List<CoursePlanRespVO>> getCoursePlanList(@Valid CoursePlanListReqVO reqVO) {
         Integer queryType = reqVO.getQueryType();

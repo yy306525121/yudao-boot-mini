@@ -17,7 +17,7 @@ public interface ErrorCodeConstants {
     ErrorCode TEACHER_NOT_EXISTS = new ErrorCode(100200100, "教师不存在");
     ErrorCode TEACHER_NAME_DUPLICATE = new ErrorCode(100200101, "教师姓名已存在");
     ErrorCode TEACHER_NAME_NOT_EXISTS = new ErrorCode(100200102, "教师(name={})不存在");
-    ErrorCode TEACHER_SUBJECT_NOT_EXISTS = new ErrorCode(100200103, "教师(name={})科目(name={})不存在");
+    ErrorCode TEACHER_SUBJECT_NOT_EXISTS = new ErrorCode(100200103, "教师：{}无法讲授：{}, 请检查教师设置");
 
 
     // ========== 年级 100300100 ==========
@@ -66,4 +66,15 @@ public interface ErrorCodeConstants {
     // ========== 考试时间规则 100110100 ==========
     ErrorCode EXAM_RULE_NOT_EXISTS = new ErrorCode(100110100, "考试时间规则不存在");
     ErrorCode EXAM_RULE_PARAM_ERROR = new ErrorCode(100110101, "考试时间设置错误");
+
+    // ========== 排课计划 100120100 ==========
+    ErrorCode TIMETABLE_NOT_EXISTS = new ErrorCode(100120100, "排课不存在");
+    ErrorCode TIMETABLE_NAME_DUPLICATE = new ErrorCode(100120101, "排课名称已存在");
+
+    // ========== 排课计划设置 100130100 ==========
+    ErrorCode TIMETABLE_SETTING_NOT_EXISTS = new ErrorCode(100130100, "排课计划设置不存在");
+    ErrorCode TIMETABLE_SETTING_DUPLICATE = new ErrorCode(100130101, "排课计划设置已存在");
+
+    // ========== 排课结果 100140100 ==========
+    ErrorCode TIMETABLE_RESULT_NOT_EXISTS = new ErrorCode(100140100, "排课结果不存在");
 }

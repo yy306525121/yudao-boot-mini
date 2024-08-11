@@ -1,16 +1,21 @@
-package cn.iocoder.yudao.module.solver.controller.admin.timetable;
+package cn.iocoder.yudao.module.school.controller.admin.timetable;
 
+import ai.timefold.solver.core.api.solver.SolverJob;
+import ai.timefold.solver.core.api.solver.SolverManager;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
-import cn.iocoder.yudao.module.solver.controller.admin.timetable.vo.TimetablePageReqVO;
-import cn.iocoder.yudao.module.solver.controller.admin.timetable.vo.TimetableRespVO;
-import cn.iocoder.yudao.module.solver.controller.admin.timetable.vo.TimetableSaveReqVO;
-import cn.iocoder.yudao.module.solver.dal.dataobject.timetable.TimetableDO;
-import cn.iocoder.yudao.module.solver.service.timetable.TimetableService;
+import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.TimetablePageReqVO;
+import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.TimetableRespVO;
+import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.TimetableSaveReqVO;
+import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.TimetableSimpleRespVO;
+import cn.iocoder.yudao.module.school.dal.dataobject.timetable.TimetableDO;
+import cn.iocoder.yudao.module.school.service.timetable.TimetableResultService;
+import cn.iocoder.yudao.module.school.service.timetable.TimetableService;
+import cn.iocoder.yudao.module.school.timetabling.domain.TimeTableProblem;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,17 +28,39 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.EXPORT;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Tag(name = "管理后台 - 排课")
 @RestController
-@RequestMapping("/solver/timetable")
+@RequestMapping("/school/timetable")
 @Validated
 @RequiredArgsConstructor
 public class TimetableController {
     private final TimetableService timetableService;
+    private final TimetableResultService timetableResultService;
+    private final SolverManager<TimeTableProblem, Long> solverManager;
+
+    @GetMapping("/solve")
+    @Operation(summary = "开始排课")
+    @Parameter(name = "id", description = "编号", required = true, example = "1024")
+    @PreAuthorize("@ss.hasPermission('school:timetable:solve')")
+    public CommonResult<Boolean> solve(@RequestParam("id") Long id) {
+        TimeTableProblem problem = timetableService.generateProblem(id);
+
+        SolverJob<TimeTableProblem, Long> solverJob = solverManager.solve(id, problem);
+        TimeTableProblem solution;
+        try {
+            solution = solverJob.getFinalBestSolution();
+
+            timetableResultService.createTimetableResultBatch(id, solution.getLessonList());
+        } catch (InterruptedException | ExecutionException e) {
+            throw new IllegalStateException("Solving failed.", e);
+        }
+        return success(true);
+    }
 
     @PostMapping("/create")
     @Operation(summary = "创建排课")
@@ -74,6 +101,13 @@ public class TimetableController {
     public CommonResult<PageResult<TimetableRespVO>> getTimetablePage(@Valid TimetablePageReqVO pageReqVO) {
         PageResult<TimetableDO> pageResult = timetableService.getTimetablePage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, TimetableRespVO.class));
+    }
+
+    @GetMapping(value = {"/list-all-simple", "simple-list"})
+    @Operation(summary = "获得全部排课计划数据列表", description = "一般用于管理后台缓存字典数据在本地")
+    public CommonResult<List<TimetableSimpleRespVO>> getSimpleTimetableList() {
+        List<TimetableDO> timetableList = timetableService.getTimetableList();
+        return success(BeanUtils.toBean(timetableList, TimetableSimpleRespVO.class));
     }
 
     @GetMapping("/export-excel")

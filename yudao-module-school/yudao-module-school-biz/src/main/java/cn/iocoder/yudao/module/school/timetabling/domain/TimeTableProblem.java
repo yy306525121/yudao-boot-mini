@@ -14,7 +14,7 @@ import java.util.List;
 
 @Data
 @PlanningSolution
-public class TimeTable {
+public class TimeTableProblem {
     /**
      * 问题事实
      */

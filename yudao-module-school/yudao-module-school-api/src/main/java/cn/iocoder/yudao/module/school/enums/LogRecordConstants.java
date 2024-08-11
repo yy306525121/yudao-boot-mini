@@ -56,4 +56,23 @@ public interface LogRecordConstants {
     // ======================= SCHOOL_COURSE_PLAN 课程计划 =======================
     String SCHOOL_COURSE_PLAN_TYPE = "SCHOOL 课程节次";
     String SCHOOL_COURSE_PLAN_CHANGE_SUCCESS = "更新了课程计划【班级（{{#reqVO.gradeId}}）: {_DIFF{#newCoursePlan}}】";
+
+
+    // ======================= SOLVER_TIMETABLE 排课计划 =======================
+    String SCHOOL_TIMETABLE_TYPE = "SCHOOL 排课计划";
+    String SCHOOL_TIMETABLE_CREATE_SUB_TYPE = "创建排课计划";
+    String SCHOOL_TIMETABLE_CREATE_SUCCESS = "创建了排课计划【{{#timetable.name}}】";
+    String SCHOOL_TIMETABLE_UPDATE_SUB_TYPE = "更新排课计划";
+    String SCHOOL_TIMETABLE_UPDATE_SUCCESS = "更新了排课计划【{{#timetable.name}}】: {_DIFF{#reqVO}}";
+    String SCHOOL_TIMETABLE_DELETE_SUB_TYPE = "删除排课计划";
+    String SCHOOL_TIMETABLE_DELETE_SUCCESS = "删除了排课计划【{{#timetable.name}}】";
+
+    // ======================= SOLVER_TIMETABLE 排课计划设置 =======================
+    String SCHOOL_TIMETABLE_SETTING_TYPE = "SCHOOL 排课计划设置";
+    String SCHOOL_TIMETABLE_SETTING_CREATE_SUB_TYPE = "创建排课计划设置";
+    String SCHOOL_TIMETABLE_SETTING_CREATE_SUCCESS = "创建了排课计划设置【班级：{{#timetableSetting.gradeId}}，科目：{{#timetableSetting.subjectId}}, 类型：{{#timetableSetting.courseTypeId}}】";
+    String SCHOOL_TIMETABLE_SETTING_UPDATE_SUB_TYPE = "更新排课计划设置";
+    String SCHOOL_TIMETABLE_SETTING_UPDATE_SUCCESS = "更新了排课计划设置【班级：{{#timetableSetting.gradeId}}，科目：{{#timetableSetting.subjectId}}, 类型：{{#timetableSetting.courseTypeId}}】: {_DIFF{#reqVO}}";
+    String SCHOOL_TIMETABLE_SETTING_DELETE_SUB_TYPE = "删除排课计划设置";
+    String SCHOOL_TIMETABLE_SETTING_DELETE_SUCCESS = "删除了排课计划【班级：{{#timetableSetting.gradeId}}，科目：{{#timetableSetting.subjectId}}, 类型：{{#timetableSetting.courseTypeId}}】";
 }
