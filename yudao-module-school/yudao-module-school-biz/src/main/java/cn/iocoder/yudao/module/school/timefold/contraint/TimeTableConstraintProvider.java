@@ -1,4 +1,4 @@
-package cn.iocoder.yudao.module.school.timetabling.contraint;
+package cn.iocoder.yudao.module.school.timefold.contraint;
 
 import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
@@ -6,7 +6,7 @@ import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.module.school.enums.course.CourseTypeEnum;
-import cn.iocoder.yudao.module.school.timetabling.domain.Lesson;
+import cn.iocoder.yudao.module.school.timefold.domain.Lesson;
 
 import static ai.timefold.solver.core.api.score.stream.ConstraintCollectors.count;
 import static ai.timefold.solver.core.api.score.stream.Joiners.equal;
@@ -138,11 +138,4 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
                 .reward(HardSoftScore.ONE_SOFT)
                 .asConstraint("teacher preferred limit");
     }
-    // Constraint maximizePreferredTimeslotAssignments(ConstraintFactory constraintFactory) {
-    //     return constraintFactory.forEach(Lesson.class)
-    //             .join(Teacher.class, Joiners.equal(Lesson::getTeacher, Function.identity()))
-    //             .filter((lesson, teacher) -> teacher.preferredTimeslots() != null && !teacher.preferredTimeslots().contains(lesson.getTimeslot()))
-    //             .penalize(HardSoftScore.ONE_SOFT)
-    //             .asConstraint("Teacher was assigned unpreferred timeslot");
-    // }
 }

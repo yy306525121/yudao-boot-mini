@@ -15,7 +15,7 @@ import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.TimetableSim
 import cn.iocoder.yudao.module.school.dal.dataobject.timetable.TimetableDO;
 import cn.iocoder.yudao.module.school.service.timetable.TimetableResultService;
 import cn.iocoder.yudao.module.school.service.timetable.TimetableService;
-import cn.iocoder.yudao.module.school.timetabling.domain.TimeTableProblem;
+import cn.iocoder.yudao.module.school.timefold.domain.TimeTableProblem;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
