@@ -70,6 +70,8 @@ public interface ErrorCodeConstants {
     // ========== 排课计划 100120100 ==========
     ErrorCode TIMETABLE_NOT_EXISTS = new ErrorCode(100120100, "排课不存在");
     ErrorCode TIMETABLE_NAME_DUPLICATE = new ErrorCode(100120101, "排课名称已存在");
+    ErrorCode TIMETABLE_JOB_RUNNING = new ErrorCode(100120102, "当前任务正在进行，请耐心等待");
+    ErrorCode TIMETABLE_JOB_NOT_EXISTS = new ErrorCode(100120103, "该任务不存在");
 
     // ========== 排课计划设置 100130100 ==========
     ErrorCode TIMETABLE_SETTING_NOT_EXISTS = new ErrorCode(100130100, "排课计划设置不存在");

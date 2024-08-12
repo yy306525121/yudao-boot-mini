@@ -253,4 +253,4 @@ justauth:
 timefold:
   solver:
     termination:
-      spent-limit: 5s
+      spent-limit: 30s

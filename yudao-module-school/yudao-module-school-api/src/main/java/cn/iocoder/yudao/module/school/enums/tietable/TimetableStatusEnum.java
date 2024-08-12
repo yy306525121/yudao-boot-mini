@@ -8,10 +8,9 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum TimestatusStatusEnum {
-    NOT_SCHEDULING(0, "未排课"),
-    SCHEDULING(1, "正在排课"),
-    SCHEDULING_SUCCESS(1, "排课完成");
+public enum TimetableStatusEnum {
+    NO(0, "未排课"),
+    YES(1, "已排课");
 
     private final Integer status;
 

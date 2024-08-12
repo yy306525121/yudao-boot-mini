@@ -23,4 +23,7 @@ public class TimetableRespVO {
     @Schema(description = "排课状态", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
     private Integer status;
 
+    @Schema(description = "是否正在运行", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
+    private Boolean running;
+
 }

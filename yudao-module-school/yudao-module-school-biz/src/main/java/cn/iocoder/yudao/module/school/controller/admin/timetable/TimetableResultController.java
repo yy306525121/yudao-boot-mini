@@ -132,4 +132,11 @@ public class TimetableResultController {
 
         return success(TimetableResultConvert.INSTANCE.convertList(resultList, gradeList, teacherList, subjectList, timeSlotList, courseTypeList));
     }
+
+    /**
+     * 生成早自习
+     */
+    private void generateMorning() {
+
+    }
 }

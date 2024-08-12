@@ -16,4 +16,6 @@ public class TimetableSaveReqVO {
     @NotEmpty(message = "排课名称不能为空")
     @DiffLogField(name = "排课计划名称")
     private String name;
+
+    private Integer status;
 }
