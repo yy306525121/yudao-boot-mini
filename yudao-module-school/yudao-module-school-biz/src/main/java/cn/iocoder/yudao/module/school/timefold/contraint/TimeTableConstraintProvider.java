@@ -5,6 +5,7 @@ import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
 import cn.hutool.core.collection.CollUtil;
+import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseTypeDO;
 import cn.iocoder.yudao.module.school.enums.course.CourseTypeEnum;
 import cn.iocoder.yudao.module.school.timefold.domain.Lesson;
 
@@ -19,8 +20,10 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
                 teacherConflict(constraintFactory),
                 timeSlotNormalConflict(constraintFactory),
                 timeSlotEveningConflict(constraintFactory),
-                teacherTimeEfficiency(constraintFactory),
-                teacherTimeMaxLimit(constraintFactory),
+                // teacherTimeEfficiency(constraintFactory),
+                // teacherTimeMaxLimit(constraintFactory),
+                continuousConflict(constraintFactory),
+                ordinaryConflict(constraintFactory),
                 teacherPreferredWeekLimit(constraintFactory)
         };
     }
@@ -56,7 +59,7 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
     }
 
     /**
-     * 正课和自习课节次约束
+     * 正课和自习课只能在每天的第二节和第十节之间
      * @param constraintFactory
      * @return
      */
@@ -71,7 +74,7 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
     }
 
     /**
-     * 晚自习节次约束
+     * 夜自习节次不能小于11
      * @param constraintFactory
      * @return
      */
@@ -100,7 +103,7 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
     }
 
     /**
-     * 单科每天不能超过2节
+     * 正课每天不能超过2节
      * @param constraintFactory
      * @return
      */
@@ -112,6 +115,36 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
                 .filter((week, teacher, courseType, count) -> count > 2)
                 .penalize(HardSoftScore.ONE_HARD)
                 .asConstraint("teacher time max limit");
+    }
+
+    /**
+     * 连堂课约束
+     * @param constraintFactory
+     * @return
+     */
+    private Constraint continuousConflict(ConstraintFactory constraintFactory) {
+        return constraintFactory
+                .forEach(Lesson.class)
+                .filter(Lesson::getContinuousFlag)
+                .join(Lesson.class, equal((lesson) -> lesson.getContinuousUuid()))
+                .filter((lesson1, lesson2) -> Math.abs(lesson1.getTimeSlot().getSort() - lesson2.getTimeSlot().getSort()) == 1)
+                .reward(HardSoftScore.ONE_HARD)
+                .asConstraint("continuous conflict");
+    }
+
+    /**
+     * 如果不是连堂课设置，一天内不允许出现多堂相同的课
+     * @param constraintFactory
+     * @return
+     */
+    private Constraint ordinaryConflict(ConstraintFactory constraintFactory) {
+        return constraintFactory
+                .forEach(Lesson.class)
+                .filter(lesson -> !lesson.getContinuousFlag())
+                .groupBy(Lesson::getGrade, Lesson::getDayOfWeek, Lesson::getTeacher, count())
+                .filter((week, teacher, courseType, count) -> count > 1)
+                .penalize(HardSoftScore.ONE_HARD)
+                .asConstraint("ordinary conflict");
     }
 
     /**

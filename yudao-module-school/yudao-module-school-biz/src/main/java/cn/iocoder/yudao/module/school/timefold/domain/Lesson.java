@@ -34,6 +34,18 @@ public class Lesson {
     private Set<Integer> preferWeeks;
     private Set<Long> preferTimeSlotIds;
 
+    /**
+     * 是否有连堂课
+     */
+    private Boolean continuousFlag;
+
+    /**
+     * 连堂课绑定UUID,UUID一样的课程必须在一起
+     */
+    private String continuousUuid;
+
+
+
     @PlanningVariable
     private DayOfWeek dayOfWeek;
 

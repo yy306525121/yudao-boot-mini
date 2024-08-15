@@ -76,10 +76,10 @@ public class TimetableController {
                     // 最终获得最优解
                     redisTemplate.opsForValue().set(key, false);
 
-                    TimetableSaveReqVO timetable = new TimetableSaveReqVO();
-                    timetable.setId(timetableId);
-                    timetable.setStatus(TimetableStatusEnum.YES.getStatus());
-                    timetableService.updateTimetable(timetable);
+                    // TimetableSaveReqVO timetable = new TimetableSaveReqVO();
+                    // timetable.setId(timetableId);
+                    // timetable.setStatus(TimetableStatusEnum.YES.getStatus());
+                    // timetableService.updateTimetable(timetable);
                     timetableResultService.createTimetableResultBatch(timetableId, solution.getLessonList());
                 })
                 .withExceptionHandler((id_, exception) -> {

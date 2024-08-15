@@ -24,7 +24,6 @@ public interface TimetableSettingMapper extends BaseMapperX<TimetableSettingDO> 
                 .eqIfPresent(TimetableSettingDO::getGradeId, reqVO.getGradeId())
                 .eqIfPresent(TimetableSettingDO::getSubjectId, reqVO.getSubjectId())
                 .eqIfPresent(TimetableSettingDO::getTeacherId, reqVO.getTeacherId())
-                .eqIfPresent(TimetableSettingDO::getCountEveryWeek, reqVO.getCountEveryWeek())
                 .orderByDesc(TimetableSettingDO::getCreateTime));
     }
 

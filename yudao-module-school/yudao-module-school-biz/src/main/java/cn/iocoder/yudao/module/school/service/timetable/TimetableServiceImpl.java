@@ -1,5 +1,7 @@
 package cn.iocoder.yudao.module.school.service.timetable;
 
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.TimetablePageReqVO;
@@ -133,25 +135,47 @@ public class TimetableServiceImpl implements TimetableService {
         // 1. 生成待排课的课程
         List<Lesson> lessonList = new ArrayList<>();
         for (TimetableSettingDO timetableSetting : timetableSettingList) {
-            Integer count = timetableSetting.getCountEveryWeek();
+            Integer ordinaryCount = timetableSetting.getOrdinaryCount();
+            Integer continuousCount = timetableSetting.getContinuousCount();
             GradeDO grade = gradeMapper.selectById(timetableSetting.getGradeId());
             TeacherDO teacher = teacherMapper.selectById(timetableSetting.getTeacherId());
             SubjectDO subject = subjectMapper.selectById(timetableSetting.getSubjectId());
             CourseTypeDO courseType = courseTypeMapper.selectById(timetableSetting.getCourseTypeId());
 
-            for (int i = 0; i < count; i++) {
+            for (Integer i = 0; i < ordinaryCount; i++) {
+                // 普通课时设置
                 Lesson lesson = new Lesson();
-                lesson.setId(UUID.randomUUID().toString());
+                lesson.setId(IdUtil.simpleUUID());
                 lesson.setGrade(grade);
                 lesson.setTeacher(teacher);
                 lesson.setSubject(subject);
                 lesson.setCourseType(courseType);
-                lesson.setPreferWeeks(timetableSetting.getPreferWeeks());
-                lesson.setPreferTimeSlotIds(timetableSetting.getPreferTimeSlotIds());
+                lesson.setContinuousFlag(Boolean.FALSE);
+                // lesson.setPreferWeeks(timetableSetting.getPreferWeeks());
+                // lesson.setPreferTimeSlotIds(timetableSetting.getPreferTimeSlotIds());
+
                 lessonList.add(lesson);
             }
-        }
 
+            for (Integer i = 0; i < continuousCount; i++) {
+                String uuid = IdUtil.simpleUUID();
+                for (int j = 0; j < 2; j++) {
+                    // 两节连堂课uuid相同
+                    Lesson lesson = new Lesson();
+                    lesson.setId(IdUtil.simpleUUID());
+                    lesson.setGrade(grade);
+                    lesson.setTeacher(teacher);
+                    lesson.setSubject(subject);
+                    lesson.setCourseType(courseType);
+                    lesson.setContinuousFlag(Boolean.TRUE);
+                    lesson.setContinuousUuid(uuid);
+                    // lesson.setPreferWeeks(timetableSetting.getPreferWeeks());
+                    // lesson.setPreferTimeSlotIds(timetableSetting.getPreferTimeSlotIds());
+
+                    lessonList.add(lesson);
+                }
+            }
+        }
 
         // 2. 获取所有的课程节次
         List<TimeSlotDO> timeSlotList = timeSlotMapper.selectList();

@@ -32,9 +32,13 @@ public class TimetableSettingPageRespVO {
     @Schema(description = "课程类型", example = "22321")
     private CourseTypeDO courseType;
 
-    @Schema(description = "每周几节课")
-    @ExcelProperty("每周几节课")
-    private Integer countEveryWeek;
+    @Schema(description = "普通课时数")
+    @ExcelProperty("普通课时数")
+    private Integer ordinaryCount;
+
+    @Schema(description = "连堂课次数")
+    @ExcelProperty("连堂课次数")
+    private Integer continuousCount;
 
     @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("创建时间")
