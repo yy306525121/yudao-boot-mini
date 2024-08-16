@@ -37,7 +37,7 @@ public class Lesson {
     /**
      * 是否有连堂课
      */
-    private Boolean continuousFlag;
+    private boolean continuousFlag;
 
     /**
      * 连堂课绑定UUID,UUID一样的课程必须在一起
@@ -51,4 +51,9 @@ public class Lesson {
 
     @PlanningVariable
     private TimeSlotDO timeSlot;
+
+
+    private boolean isContinuous() {
+        return continuousFlag;
+    }
 }

@@ -40,7 +40,6 @@ public class TimetableSettingSaveReqVO {
     private Integer ordinaryCount;
 
     @Schema(description = "连堂课次数")
-    @NotNull(message = "连堂课次数")
     @DiffLogField(name = "连堂课次数")
     private Integer continuousCount;
 

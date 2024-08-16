@@ -30,10 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.DayOfWeek;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.TIMETABLE_NAME_DUPLICATE;
@@ -142,7 +139,7 @@ public class TimetableServiceImpl implements TimetableService {
             SubjectDO subject = subjectMapper.selectById(timetableSetting.getSubjectId());
             CourseTypeDO courseType = courseTypeMapper.selectById(timetableSetting.getCourseTypeId());
 
-            for (Integer i = 0; i < ordinaryCount; i++) {
+            for (int i = 0; i < ordinaryCount; i++) {
                 // 普通课时设置
                 Lesson lesson = new Lesson();
                 lesson.setId(IdUtil.simpleUUID());
@@ -150,14 +147,15 @@ public class TimetableServiceImpl implements TimetableService {
                 lesson.setTeacher(teacher);
                 lesson.setSubject(subject);
                 lesson.setCourseType(courseType);
-                lesson.setContinuousFlag(Boolean.FALSE);
+                lesson.setContinuousFlag(false);
                 // lesson.setPreferWeeks(timetableSetting.getPreferWeeks());
                 // lesson.setPreferTimeSlotIds(timetableSetting.getPreferTimeSlotIds());
 
                 lessonList.add(lesson);
             }
 
-            for (Integer i = 0; i < continuousCount; i++) {
+            // 连堂课
+            for (int i = 0; i < continuousCount; i++) {
                 String uuid = IdUtil.simpleUUID();
                 for (int j = 0; j < 2; j++) {
                     // 两节连堂课uuid相同
@@ -167,7 +165,7 @@ public class TimetableServiceImpl implements TimetableService {
                     lesson.setTeacher(teacher);
                     lesson.setSubject(subject);
                     lesson.setCourseType(courseType);
-                    lesson.setContinuousFlag(Boolean.TRUE);
+                    lesson.setContinuousFlag(true);
                     lesson.setContinuousUuid(uuid);
                     // lesson.setPreferWeeks(timetableSetting.getPreferWeeks());
                     // lesson.setPreferTimeSlotIds(timetableSetting.getPreferTimeSlotIds());
@@ -176,6 +174,10 @@ public class TimetableServiceImpl implements TimetableService {
                 }
             }
         }
+
+
+        // 打乱list的顺序
+        Collections.shuffle(lessonList);
 
         // 2. 获取所有的课程节次
         List<TimeSlotDO> timeSlotList = timeSlotMapper.selectList();
