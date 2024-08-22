@@ -5,7 +5,7 @@ import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.result.Timet
 import cn.iocoder.yudao.module.school.convert.timetable.TimetableResultConvert;
 import cn.iocoder.yudao.module.school.dal.dataobject.timetable.TimetableResultDO;
 import cn.iocoder.yudao.module.school.dal.mysql.timetable.TimetableResultMapper;
-import cn.iocoder.yudao.module.school.timefold.domain.Lesson;
+import cn.iocoder.yudao.module.school.timetable.domain.Lesson;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;

@@ -1,7 +1,5 @@
 package cn.iocoder.yudao.module.school.controller.admin.timetable;
 
-import ai.timefold.solver.core.api.solver.SolverManager;
-import ai.timefold.solver.core.api.solver.SolverStatus;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -14,10 +12,9 @@ import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.TimetableSav
 import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.TimetableSimpleRespVO;
 import cn.iocoder.yudao.module.school.convert.timetable.TimetableConvert;
 import cn.iocoder.yudao.module.school.dal.dataobject.timetable.TimetableDO;
-import cn.iocoder.yudao.module.school.enums.tietable.TimetableStatusEnum;
 import cn.iocoder.yudao.module.school.service.timetable.TimetableResultService;
 import cn.iocoder.yudao.module.school.service.timetable.TimetableService;
-import cn.iocoder.yudao.module.school.timefold.domain.TimeTableProblem;
+import cn.iocoder.yudao.module.school.timetable.domain.TimeTableProblem;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,6 +22,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.optaplanner.core.api.solver.SolverManager;
+import org.optaplanner.core.api.solver.SolverStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -68,24 +67,11 @@ public class TimetableController {
         }
         // 设置任务正在运行的标识
         redisTemplate.opsForValue().set(key, true);
-
-        solverManager.solveBuilder()
-                .withProblemId(timetableId)
-                .withProblemFinder(id_ -> timetableService.generateProblem(timetableId))
-                .withFinalBestSolutionConsumer(solution -> {
-                    // 最终获得最优解
-                    redisTemplate.opsForValue().set(key, false);
-
-                    // TimetableSaveReqVO timetable = new TimetableSaveReqVO();
-                    // timetable.setId(timetableId);
-                    // timetable.setStatus(TimetableStatusEnum.YES.getStatus());
-                    // timetableService.updateTimetable(timetable);
-                    timetableResultService.createTimetableResultBatch(timetableId, solution.getLessonList());
-                })
-                .withExceptionHandler((id_, exception) -> {
-                    log.error("排课发生错误({})", timetableId, exception);
-                })
-                .run();
+        solverManager.solveAndListen(timetableId, id -> timetableService.generateProblem(timetableId), solution-> {
+            // 最终获得最优解
+            redisTemplate.opsForValue().set(key, false);
+            timetableResultService.createTimetableResultBatch(timetableId, solution.getLessonList());
+        });
 
         // SolverJob<TimeTableProblem, Long> solverJob = solverManager.solve(id, problem);
         // TimeTableProblem solution;

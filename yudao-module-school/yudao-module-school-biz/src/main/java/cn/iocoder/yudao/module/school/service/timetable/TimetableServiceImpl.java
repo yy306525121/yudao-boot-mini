@@ -1,7 +1,6 @@
 package cn.iocoder.yudao.module.school.service.timetable;
 
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.TimetablePageReqVO;
@@ -20,8 +19,8 @@ import cn.iocoder.yudao.module.school.dal.mysql.subject.SubjectMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.teacher.TeacherMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.timetable.TimetableMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.timetable.TimetableSettingMapper;
-import cn.iocoder.yudao.module.school.timefold.domain.Lesson;
-import cn.iocoder.yudao.module.school.timefold.domain.TimeTableProblem;
+import cn.iocoder.yudao.module.school.timetable.domain.Lesson;
+import cn.iocoder.yudao.module.school.timetable.domain.TimeTableProblem;
 import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.service.impl.DiffParseFunction;
 import com.mzt.logapi.starter.annotation.LogRecord;
@@ -131,6 +130,7 @@ public class TimetableServiceImpl implements TimetableService {
 
         // 1. 生成待排课的课程
         List<Lesson> lessonList = new ArrayList<>();
+        Long lessonId = 0L;
         for (TimetableSettingDO timetableSetting : timetableSettingList) {
             Integer ordinaryCount = timetableSetting.getOrdinaryCount();
             Integer continuousCount = timetableSetting.getContinuousCount();
@@ -142,15 +142,12 @@ public class TimetableServiceImpl implements TimetableService {
             for (int i = 0; i < ordinaryCount; i++) {
                 // 普通课时设置
                 Lesson lesson = new Lesson();
-                lesson.setId(IdUtil.simpleUUID());
+                lesson.setId(lessonId++);
                 lesson.setGrade(grade);
                 lesson.setTeacher(teacher);
                 lesson.setSubject(subject);
                 lesson.setCourseType(courseType);
                 lesson.setContinuousFlag(false);
-                // lesson.setPreferWeeks(timetableSetting.getPreferWeeks());
-                // lesson.setPreferTimeSlotIds(timetableSetting.getPreferTimeSlotIds());
-
                 lessonList.add(lesson);
             }
 
@@ -160,7 +157,7 @@ public class TimetableServiceImpl implements TimetableService {
                 for (int j = 0; j < 2; j++) {
                     // 两节连堂课uuid相同
                     Lesson lesson = new Lesson();
-                    lesson.setId(IdUtil.simpleUUID());
+                    lesson.setId(lessonId++);
                     lesson.setGrade(grade);
                     lesson.setTeacher(teacher);
                     lesson.setSubject(subject);

@@ -7,7 +7,7 @@ import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.subject.SubjectDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.timetable.TimetableResultDO;
-import cn.iocoder.yudao.module.school.timefold.domain.Lesson;
+import cn.iocoder.yudao.module.school.timetable.domain.Lesson;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

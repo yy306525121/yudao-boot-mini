@@ -1,6 +1,5 @@
 package cn.iocoder.yudao.module.school.dal.dataobject.course;
 
-import ai.timefold.solver.core.api.domain.lookup.PlanningId;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -26,7 +25,6 @@ public class TimeSlotDO extends BaseDO {
      * 主键
      */
     @TableId
-    @PlanningId
     private Long id;
     /**
      * 节次类型

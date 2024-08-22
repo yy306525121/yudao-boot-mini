@@ -2,7 +2,7 @@ package cn.iocoder.yudao.module.school.service.timetable;
 
 import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.result.TimetableResultSaveReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.timetable.TimetableResultDO;
-import cn.iocoder.yudao.module.school.timefold.domain.Lesson;
+import cn.iocoder.yudao.module.school.timetable.domain.Lesson;
 import jakarta.validation.Valid;
 
 import java.util.List;

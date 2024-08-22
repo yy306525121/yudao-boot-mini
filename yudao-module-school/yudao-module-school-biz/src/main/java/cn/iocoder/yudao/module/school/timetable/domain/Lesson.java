@@ -1,14 +1,16 @@
-package cn.iocoder.yudao.module.school.timefold.domain;
+package cn.iocoder.yudao.module.school.timetable.domain;
 
-import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
-import ai.timefold.solver.core.api.domain.lookup.PlanningId;
-import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
+import cn.hutool.core.text.StrPool;
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseTypeDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.subject.SubjectDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
 import lombok.Data;
+import org.optaplanner.core.api.domain.entity.PlanningEntity;
+import org.optaplanner.core.api.domain.lookup.PlanningId;
+import org.optaplanner.core.api.domain.variable.PlanningVariable;
 
 import java.time.DayOfWeek;
 import java.util.Set;
@@ -21,7 +23,7 @@ import java.util.Set;
 public class Lesson {
 
     @PlanningId
-    private String id;
+    private Long id;
 
     private SubjectDO subject;
 
@@ -52,8 +54,7 @@ public class Lesson {
     @PlanningVariable
     private TimeSlotDO timeSlot;
 
-
-    private boolean isContinuous() {
-        return continuousFlag;
+    public String getUnionFlag() {
+        return StrUtil.join(StrPool.UNDERLINE, grade.getName(), subject.getName(), dayOfWeek.name(), continuousFlag, continuousUuid);
     }
 }

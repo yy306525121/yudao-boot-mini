@@ -1,13 +1,13 @@
-package cn.iocoder.yudao.module.school.timefold.domain;
+package cn.iocoder.yudao.module.school.timetable.domain;
 
-import ai.timefold.solver.core.api.domain.solution.PlanningEntityCollectionProperty;
-import ai.timefold.solver.core.api.domain.solution.PlanningScore;
-import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
-import ai.timefold.solver.core.api.domain.solution.ProblemFactCollectionProperty;
-import ai.timefold.solver.core.api.domain.valuerange.ValueRangeProvider;
-import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
 import lombok.Data;
+import org.optaplanner.core.api.domain.solution.PlanningEntityCollectionProperty;
+import org.optaplanner.core.api.domain.solution.PlanningScore;
+import org.optaplanner.core.api.domain.solution.PlanningSolution;
+import org.optaplanner.core.api.domain.solution.ProblemFactCollectionProperty;
+import org.optaplanner.core.api.domain.valuerange.ValueRangeProvider;
+import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 
 import java.time.DayOfWeek;
 import java.util.List;

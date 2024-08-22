@@ -76,7 +76,7 @@
         <xercesImpl.version>2.12.2</xercesImpl.version>
         <weixin-java.version>4.6.0</weixin-java.version>
 
-        <version.ai.timefold.solver>1.12.0</version.ai.timefold.solver>
+        <version.org.optaplanner>9.44.0.Final</version.org.optaplanner>
     </properties>
 
     <dependencyManagement>
@@ -91,9 +91,9 @@
             </dependency>
 
             <dependency>
-                <groupId>ai.timefold.solver</groupId>
-                <artifactId>timefold-solver-bom</artifactId>
-                <version>${version.ai.timefold.solver}</version>
+                <groupId>org.optaplanner</groupId>
+                <artifactId>optaplanner-bom</artifactId>
+                <version>${version.org.optaplanner}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
