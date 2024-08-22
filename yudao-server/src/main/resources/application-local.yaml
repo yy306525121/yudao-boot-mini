@@ -172,7 +172,7 @@ logging:
     cn.iocoder.yudao.module.crm.dal.mysql: debug
     cn.iocoder.yudao.module.erp.dal.mysql: debug
     org.springframework.context.support.PostProcessorRegistrationDelegate: ERROR # TODO 芋艿：先禁用，Spring Boot 3.X 存在部分错误的 WARN 提示
-    ai.timefold.solver: debug
+    ai.timefold.solver: info
 
 debug: false
 
@@ -251,6 +251,8 @@ justauth:
     timeout: 24h # 超时时长，目前只对 Redis 缓存生效，默认 3 分钟
 
 timefold:
+  solver-manager:
+    parallel-solver-count: 12
   solver:
     termination:
       spent-limit: 30s
