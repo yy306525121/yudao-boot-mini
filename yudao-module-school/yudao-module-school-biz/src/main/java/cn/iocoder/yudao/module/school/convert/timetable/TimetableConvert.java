@@ -22,23 +22,14 @@ public interface TimetableConvert {
     TimetableRespVO convert(TimetableDO timetable);
 
 
-    default PageResult<TimetableRespVO> convertPage(PageResult<TimetableDO> page,
-                                                    RedisTemplate<String, Object> redisTemplate,
-                                                    String runningJobKey) {
+    default PageResult<TimetableRespVO> convertPage(PageResult<TimetableDO> page) {
         PageResult<TimetableRespVO> pageResult = new PageResult<>();
         List<TimetableRespVO> pageList = new ArrayList<>();
 
         List<TimetableDO> list = page.getList();
         for (TimetableDO timetable : list) {
-            String key = String.format(runningJobKey, timetable.getId());
 
             TimetableRespVO respVO = convert(timetable);
-
-            if (Boolean.TRUE.equals(redisTemplate.hasKey(key)) && Boolean.TRUE.equals(redisTemplate.opsForValue().get(key))) {
-                respVO.setRunning(Boolean.TRUE);
-            } else {
-                respVO.setRunning(Boolean.FALSE);
-            }
 
             pageList.add(respVO);
         }

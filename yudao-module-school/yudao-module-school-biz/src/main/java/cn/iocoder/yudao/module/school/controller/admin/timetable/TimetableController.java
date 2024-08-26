@@ -57,6 +57,8 @@ public class TimetableController {
             throw exception(TIMETABLE_NOT_EXISTS);
         }
 
+        timetableService.solve(timetableId);
+
         return success(true);
     }
 
@@ -99,7 +101,7 @@ public class TimetableController {
     @PreAuthorize("@ss.hasPermission('solver:timetable:query')")
     public CommonResult<PageResult<TimetableRespVO>> getTimetablePage(@Valid TimetablePageReqVO pageReqVO) {
         PageResult<TimetableDO> pageResult = timetableService.getTimetablePage(pageReqVO);
-        return success(TimetableConvert.INSTANCE.convertPage(pageResult, redisTemplate, runningJobKey));
+        return success(TimetableConvert.INSTANCE.convertPage(pageResult));
     }
 
     @GetMapping(value = {"/list-all-simple", "simple-list"})

@@ -8,6 +8,8 @@ import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.subject.SubjectDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.DayOfWeek;
 import java.util.Set;
@@ -15,7 +17,8 @@ import java.util.Set;
 /**
  * 规划实体
  */
-@Data
+@Getter
+@Setter
 public class Lesson {
 
     private Long id;
@@ -29,6 +32,7 @@ public class Lesson {
     private CourseTypeDO courseType;
 
     private Set<Integer> preferWeeks;
+
     private Set<Long> preferTimeSlotIds;
 
     /**
@@ -36,16 +40,13 @@ public class Lesson {
      */
     private boolean continuousFlag;
 
-    /**
-     * 连堂课绑定UUID,UUID一样的课程必须在一起
-     */
-    private String continuousUuid;
 
     private DayOfWeek dayOfWeek;
 
     private TimeSlotDO timeSlot;
 
-    public String getUnionFlag() {
-        return StrUtil.join(StrPool.UNDERLINE, grade.getName(), subject.getName(), dayOfWeek.name(), continuousFlag, continuousUuid);
+    @Override
+    public String toString() {
+        return "班级：" + grade.getName() + "，教师：" + teacher.getName() + "，课程：" + subject.getName() + "，课程类型" + courseType.getName() + "，是否连堂课：" + continuousFlag;
     }
 }
