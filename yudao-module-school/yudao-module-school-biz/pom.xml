@@ -9,7 +9,6 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-
     <artifactId>yudao-module-school-biz</artifactId>
     <packaging>jar</packaging>
 
@@ -58,16 +57,6 @@
         <dependency>
             <groupId>cn.iocoder.boot</groupId>
             <artifactId>yudao-spring-boot-starter-excel</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.optaplanner</groupId>
-            <artifactId>optaplanner-spring-boot-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.optaplanner</groupId>
-            <artifactId>optaplanner-test</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

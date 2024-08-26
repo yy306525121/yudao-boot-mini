@@ -76,7 +76,6 @@
         <xercesImpl.version>2.12.2</xercesImpl.version>
         <weixin-java.version>4.6.0</weixin-java.version>
 
-        <version.org.optaplanner>9.44.0.Final</version.org.optaplanner>
     </properties>
 
     <dependencyManagement>
@@ -86,14 +85,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring.boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.optaplanner</groupId>
-                <artifactId>optaplanner-bom</artifactId>
-                <version>${version.org.optaplanner}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

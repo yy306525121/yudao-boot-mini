@@ -6,7 +6,6 @@ import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.TimetablePageReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.TimetableSaveReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseTypeDO;
-import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.subject.SubjectDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
@@ -20,7 +19,6 @@ import cn.iocoder.yudao.module.school.dal.mysql.teacher.TeacherMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.timetable.TimetableMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.timetable.TimetableSettingMapper;
 import cn.iocoder.yudao.module.school.timetable.domain.Lesson;
-import cn.iocoder.yudao.module.school.timetable.domain.TimeTableProblem;
 import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.service.impl.DiffParseFunction;
 import com.mzt.logapi.starter.annotation.LogRecord;
@@ -28,8 +26,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import java.time.DayOfWeek;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.TIMETABLE_NAME_DUPLICATE;
@@ -123,7 +121,7 @@ public class TimetableServiceImpl implements TimetableService {
     }
 
     @Override
-    public TimeTableProblem generateProblem(Long id) {
+    public List<Lesson> generateProblem(Long id) {
         validateTimetableExists(id);
 
         List<TimetableSettingDO> timetableSettingList = timetableSettingMapper.selectListByTimetableId(id);
@@ -172,21 +170,6 @@ public class TimetableServiceImpl implements TimetableService {
             }
         }
 
-
-        // 打乱list的顺序
-        Collections.shuffle(lessonList);
-
-        // 2. 获取所有的课程节次
-        List<TimeSlotDO> timeSlotList = timeSlotMapper.selectList();
-        // 3. 获取一周中的所有天数
-        List<DayOfWeek> dayOfWeekList = Arrays.asList(DayOfWeek.values());
-
-        // 构建问题实体
-        TimeTableProblem problem = new TimeTableProblem();
-        problem.setDayOfWeekList(dayOfWeekList);
-        problem.setTimeSlotList(timeSlotList);
-        problem.setLessonList(lessonList);
-
-        return problem;
+        return lessonList;
     }
 }

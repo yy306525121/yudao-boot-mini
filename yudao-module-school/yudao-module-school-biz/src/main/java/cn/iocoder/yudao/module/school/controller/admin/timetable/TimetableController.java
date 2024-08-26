@@ -14,7 +14,6 @@ import cn.iocoder.yudao.module.school.convert.timetable.TimetableConvert;
 import cn.iocoder.yudao.module.school.dal.dataobject.timetable.TimetableDO;
 import cn.iocoder.yudao.module.school.service.timetable.TimetableResultService;
 import cn.iocoder.yudao.module.school.service.timetable.TimetableService;
-import cn.iocoder.yudao.module.school.timetable.domain.TimeTableProblem;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,8 +21,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.optaplanner.core.api.solver.SolverManager;
-import org.optaplanner.core.api.solver.SolverStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,7 +33,7 @@ import java.util.List;
 import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.EXPORT;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
-import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.*;
+import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.TIMETABLE_NOT_EXISTS;
 
 @Slf4j
 @Tag(name = "管理后台 - 排课")
@@ -47,7 +44,6 @@ import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.*;
 public class TimetableController {
     private final TimetableService timetableService;
     private final TimetableResultService timetableResultService;
-    private final SolverManager<TimeTableProblem, Long> solverManager;
     private final RedisTemplate<String, Object> redisTemplate;
 
     @Value("${yudao.timefold.solver.redisStatusKey}")
@@ -61,42 +57,9 @@ public class TimetableController {
             throw exception(TIMETABLE_NOT_EXISTS);
         }
 
-        String key = String.format(runningJobKey, timetableId);
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(key)) && Boolean.TRUE.equals(redisTemplate.opsForValue().get(key))) {
-            throw exception(TIMETABLE_JOB_RUNNING);
-        }
-        // 设置任务正在运行的标识
-        redisTemplate.opsForValue().set(key, true);
-        solverManager.solveAndListen(timetableId, id -> timetableService.generateProblem(timetableId), solution-> {
-            // 最终获得最优解
-            redisTemplate.opsForValue().set(key, false);
-            timetableResultService.createTimetableResultBatch(timetableId, solution.getLessonList());
-        });
-
-        // SolverJob<TimeTableProblem, Long> solverJob = solverManager.solve(id, problem);
-        // TimeTableProblem solution;
-        // try {
-        //     solution = solverJob.getFinalBestSolution();
-        //     timetableResultService.createTimetableResultBatch(id, solution.getLessonList());
-        // } catch (InterruptedException | ExecutionException e) {
-        //     throw new IllegalStateException("Solving failed.", e);
-        // }
         return success(true);
     }
 
-    @GetMapping("/status/{timetableId}")
-    public CommonResult<SolverStatus> getStatus(@PathVariable("timetableId") Long timetableId){
-        String key = String.format(runningJobKey, timetableId);
-
-        if (Boolean.FALSE.equals(redisTemplate.hasKey(key))) {
-            // 说明没有该任务
-            throw exception(TIMETABLE_JOB_NOT_EXISTS);
-        }
-
-        SolverStatus solverStatus = solverManager.getSolverStatus(timetableId);
-
-        return success(solverStatus);
-    }
 
     @PostMapping("/create")
     @Operation(summary = "创建排课")

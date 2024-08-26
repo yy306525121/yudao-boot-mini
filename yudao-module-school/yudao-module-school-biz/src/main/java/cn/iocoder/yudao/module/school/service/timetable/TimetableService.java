@@ -4,7 +4,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.TimetablePageReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.TimetableSaveReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.timetable.TimetableDO;
-import cn.iocoder.yudao.module.school.timetable.domain.TimeTableProblem;
+import cn.iocoder.yudao.module.school.timetable.domain.Lesson;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -50,5 +50,5 @@ public interface TimetableService {
 
     List<TimetableDO> getTimetableList();
 
-    TimeTableProblem generateProblem(Long id);
+    List<Lesson> generateProblem(Long id);
 }
