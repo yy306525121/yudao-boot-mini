@@ -31,6 +31,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.TIMETABLE_NAME_DUPLICATE;
@@ -179,73 +180,144 @@ public class TimetableServiceImpl implements TimetableService {
     public void solve(Long timetableId) {
         Loader.loadNativeLibraries();
         int numDays = 6;
-        int periodsPerDay = 9;
-        int totalTimeSlots = numDays * periodsPerDay;
+        int timeSlotPerDay = 9;
 
         List<Lesson> lessonList = generateProblem(timetableId);
 
-        List<TeacherDO> teacherList = lessonList.stream().map(Lesson::getTeacher).distinct().collect(Collectors.toList());
-        List<GradeDO> gradeList = lessonList.stream().map(Lesson::getGrade).distinct().collect(Collectors.toList());
-        List<SubjectDO> subjectList = lessonList.stream().map(Lesson::getSubject).distinct().collect(Collectors.toList());
+        List<TeacherDO> teacherList = lessonList.stream().map(Lesson::getTeacher).distinct().toList();
+        List<GradeDO> gradeList = lessonList.stream().map(Lesson::getGrade).distinct().toList();
+        List<SubjectDO> subjectList = lessonList.stream().map(Lesson::getSubject).distinct().toList();
 
         //1：建模
         CpModel model = new CpModel();
 
-        //2：准备数据
-        //2.1：每个班级的课程
-        List<IntVar> lessonTimeSlot = new ArrayList<>();
-        Map<Lesson, IntVar> lessonToTimeSlot = new HashMap<>();
-        for (Lesson lesson : lessonList) {
-            // 创建课程的时间槽变量
-            IntVar timeSlot = model.newIntVar(0, totalTimeSlots - 1, "lesson：" + lesson.toString());
-            lessonToTimeSlot.put(lesson, timeSlot);
-            lessonTimeSlot.add(timeSlot);
-
-            // 如果是连堂课，创建第二个时间槽变量并添加连堂约束
-            if (lesson.isContinuousFlag()) {
-                IntVar nextTimeSlot = model.newIntVar(0, totalTimeSlots - 1, "lesson_next：" + lesson.toString());
-                lessonToTimeSlot.put(lesson, nextTimeSlot);
-                lessonTimeSlot.add(nextTimeSlot);
-                model.addEquality(LinearExpr.weightedSum(new IntVar[]{nextTimeSlot, timeSlot}, new long[]{1, -1}), 1);
-                // TODO 判断 timeSlot % periodsPerDay != periodsPerDay - 1;
+        //2：创建变量
+        Literal[][][][][] x = new Literal[teacherList.size()][gradeList.size()][subjectList.size()][numDays][timeSlotPerDay];
+        //2.1：教师t在年级g上科目s的时间是周w的第y节
+        for (int t = 0; t < teacherList.size(); t++) {
+            for (int g = 0; g < gradeList.size(); g++) {
+                for (int s = 0; s < subjectList.size(); s++) {
+                    for (int w = 0; w < numDays; w++) {
+                        for (int y = 0; y < timeSlotPerDay; y++) {
+                            x[t][g][s][w][y] = model.newBoolVar("x[" + teacherList.get(t).getName() + "][" +
+                                    gradeList.get(g).getName() + "][" + subjectList.get(s).getName() + "][" +
+                                    w + "][" + y + "]");
+                        }
+                    }
+                }
             }
         }
 
+        //3：约束条件
+        //3.1：每个班级每个科目只能是指定的老师
         Map<GradeDO, List<Lesson>> gradeLessonMap = lessonList.stream().collect(Collectors.groupingBy(Lesson::getGrade));
-        //4：约束条件
-        //4.1：同一个班级的课程不能在同一个时间槽上
-        for (GradeDO grade : gradeList) {
-            List<IntVar> gradeTimeSlot = new ArrayList<>();
-            List<Lesson> lessons = gradeLessonMap.get(grade);
-            for (Lesson lesson : lessons) {
-                gradeTimeSlot.add(lessonToTimeSlot.get(lesson));
+        for (int g = 0; g < gradeList.size(); g++) {
+            for (int s = 0; s < subjectList.size(); s++) {
+                // 获取该班级该科目的任课老师
+                int finalG = g;
+                int finalS = s;
+                Optional<Lesson> opt = lessonList.stream().filter(item -> item.getGrade().getId().equals(gradeList.get(finalG).getId()) && item.getSubject().getId().equals(subjectList.get(finalS).getId())).findFirst();
+                if (opt.isEmpty()) {
+                    continue;
+                }
+                Lesson lesson = opt.get();
+                for (int w = 0; w < numDays; w++) {
+                    for (int y = 0; y < timeSlotPerDay; y++) {
+                        for (int t = 0; t < teacherList.size(); t++) {
+                            if (!teacherList.get(t).getId().equals(lesson.getTeacher().getId())) {
+                                // 如果不是指定的教师，值必须为0
+                                model.addEquality(x[t][g][s][w][y], 0);
+                            }
+                        }
+                    }
+                }
             }
-            model.addAllDifferent(gradeTimeSlot);
         }
-        //4.2：同一个教师，课程时间槽不能相同
-        Map<Long, List<IntVar>> teacherTimeSlots = new HashMap<>();
-        for (Lesson lesson : lessonList) {
-            Long teacherId = lesson.getTeacher().getId();
-            teacherTimeSlots.computeIfAbsent(teacherId, k -> new ArrayList<>()).add(lessonToTimeSlot.get(lesson));
+
+        //3.2：每个节次同时只能有一节课
+        for (int g = 0; g < gradeList.size(); g++) {
+            for (int w = 0; w < numDays; w++) {
+                for (int y = 0; y < timeSlotPerDay; y++) {
+                    List<Literal> subjects = new ArrayList<>();
+                    for (int s = 0; s < subjectList.size(); s++) {
+                        for (int t = 0; t < teacherList.size(); t++) {
+                            subjects.add(x[t][g][s][w][y]);
+                        }
+                    }
+                    model.addAtMostOne(subjects);
+                }
+            }
         }
-        // 为每个教师添加约束，确保他们的课程不会在同一时间槽上
-        for (Map.Entry<Long, List<IntVar>> entry : teacherTimeSlots.entrySet()) {
-            List<IntVar> timeSlot = entry.getValue();
-            model.addAllDifferent(timeSlot);
-        }
+
+
+
+        //3.2：每个班级的课程数是固定的
+        // gradeLessonMap.forEach((grade, gradeLessonList) -> {
+        //     List<SubjectDO> gradeSubjectList = gradeLessonList.stream().map(Lesson::getSubject).distinct().toList();
+        //     for (SubjectDO subject : gradeSubjectList) {
+        //             LinearExpr sumExpr = LinearExpr.sum(
+        //                     IntStream.range(0, numDays).boxed().flatMap(day -> Arrays.stream(x[teacherList.indexOf(teacher)][gradeList.indexOf(grade)][subjectList.indexOf(subject)][day], 0, timeSlotPerDay)).toArray(Literal[]::new)
+        //             );
+        //             long subjectCount = gradeLessonList.stream().filter(item -> item.getSubject().getId().equals(subject.getId())).count();
+        //             model.addEquality(sumExpr, subjectCount);
+        //     }
+        // });
+
+
+
+        // Map<TeacherDO, List<Lesson>> teacherLessonMap = lessonList.stream().collect(Collectors.groupingBy(Lesson::getTeacher));
+        // teacherLessonMap.forEach((teacher, teacherLessonList) -> {
+        //     // 获取当前教师教授的班级
+        //     List<GradeDO> teacherGradeList = teacherLessonList.stream().map(Lesson::getGrade).distinct().toList();
+        //     for (GradeDO grade : teacherGradeList) {
+        //         // 该名教师，当前年级的所授的所有课程
+        //         List<SubjectDO> teacherGradeSubjectList = teacherLessonList.stream().filter(item -> item.getGrade().getId().equals(grade.getId())).map(Lesson::getSubject).distinct().toList();
+        //         for (SubjectDO subject : teacherGradeSubjectList) {
+        //             LinearExpr sumExpr = LinearExpr.sum(IntStream.range(0, numDays).boxed().flatMap(day -> Arrays.stream(x[teacherList.indexOf(teacher)][gradeList.indexOf(grade)][subjectList.indexOf(subject)][day], 0, timeSlotPerDay)).toArray(Literal[]::new));
+        //             model.addGreaterOrEqual(sumExpr, 1);
+        //         }
+        //     }
+        // });
+        //3.2：每个班级的每个科目的课时数固定
+        gradeLessonMap.forEach((grade, gradeLessonList) -> {
+            // 该班级的所有科目
+            List<SubjectDO> gradeSubjectList = gradeLessonList.stream().map(Lesson::getSubject).distinct().toList();
+            // 该班级的所有教师
+            List<TeacherDO> gradeTeacherList = gradeLessonList.stream().map(Lesson::getTeacher).distinct().toList();
+
+            for (SubjectDO subject : gradeSubjectList) {
+                LinearExpr sumExpr = LinearExpr.sum(
+                        teacherList.stream()
+                                .flatMap(teacher -> IntStream.range(0, numDays).boxed()
+                                        .flatMap(day -> IntStream.range(0, timeSlotPerDay).mapToObj(sort -> x[teacherList.indexOf(teacher)][gradeList.indexOf(grade)][subjectList.indexOf(subject)][day][sort])))
+                                .toArray(Literal[]::new)
+                );
+                // 获取对应课程的数量
+                long subjectCount = gradeLessonList.stream().filter(item -> item.getSubject().getId().equals(subject.getId())).count();
+                model.addEquality(sumExpr, subjectCount);
+            }
+        });
+
 
         CpSolver solver = new CpSolver();
         CpSolverStatus status = solver.solve(model);
-        // 处理结果
+
         if (status == CpSolverStatus.OPTIMAL || status == CpSolverStatus.FEASIBLE) {
-            for (Lesson lesson : lessonList) {
-                int timeSlot = (int) solver.value(lessonToTimeSlot.get(lesson));
-                int day = timeSlot / periodsPerDay;
-                int period = timeSlot % periodsPerDay;
-                System.out.println("课程 " + lesson.getSubject().getName() + " (教师 " + lesson.getTeacher().getName() + ", 班级 " + lesson.getGrade().getName() + "): 星期 " + (day + 1) + ", 第 " + (period + 1) + " 节");
+            for (int t = 0; t < teacherList.size(); t++) {
+                for (int g = 0; g < gradeList.size(); g++) {
+                    for (int s = 0; s < subjectList.size(); s++) {
+                        for (int w = 0; w < numDays; w++) {
+                            for (int y = 0; y < timeSlotPerDay; y++) {
+                                if (solver.booleanValue(x[t][g][s][w][y])){
+                                    System.out.println("教师：" + teacherList.get(t).getName() + "，班级：" + gradeList.get(g).getName() + "，科目：" + subjectList.get(s).getName() + "，安排在周" + w + "的第" + y + "节");
+                                }
+                            }
+                        }
+                    }
+                }
             }
         } else {
-            System.out.println("未找到可行解。");
+            System.out.println("没有找到答案");
         }
     }
 }
