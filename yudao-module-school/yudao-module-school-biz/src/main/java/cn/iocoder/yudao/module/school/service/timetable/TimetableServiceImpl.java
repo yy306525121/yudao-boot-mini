@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.TimetablePageReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.TimetableSaveReqVO;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseTypeDO;
+import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.subject.SubjectDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
@@ -18,6 +19,7 @@ import cn.iocoder.yudao.module.school.dal.mysql.subject.SubjectMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.teacher.TeacherMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.timetable.TimetableMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.timetable.TimetableSettingMapper;
+import cn.iocoder.yudao.module.school.enums.course.CourseTypeEnum;
 import cn.iocoder.yudao.module.school.timetable.domain.Lesson;
 import com.google.ortools.Loader;
 import com.google.ortools.sat.*;
@@ -29,6 +31,7 @@ import org.checkerframework.common.value.qual.IntVal;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.DayOfWeek;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -177,7 +180,7 @@ public class TimetableServiceImpl implements TimetableService {
     }
 
     @Override
-    public void solve(Long timetableId) {
+    public List<Lesson> solve(Long timetableId) {
         Loader.loadNativeLibraries();
         int numDays = 6;
         int timeSlotPerDay = 9;
@@ -249,6 +252,48 @@ public class TimetableServiceImpl implements TimetableService {
             }
         }
 
+        //3.3：每个教师同时最多只能上一节课
+        for (int t = 0; t < teacherList.size(); t++) {
+            for (int w = 0; w < numDays; w++) {
+                for (int y = 0; y < timeSlotPerDay; y++) {
+                    List<Literal> teacherConflict = new ArrayList<>();
+                    for (int g = 0; g < gradeList.size(); g++) {
+                        for (int s = 0; s < subjectList.size(); s++) {
+                            teacherConflict.add(x[t][g][s][w][y]);
+                        }
+                    }
+                    model.addAtMostOne(teacherConflict);
+                }
+            }
+        }
+
+        //3.4：班级科目天的最大课程次数（每天上6天课，如果课程数小于6就每天最多一节，如果大于6小于12就每天最多2节，如果大于12就每天最多3节，以此类推）
+        for (int g = 0; g < gradeList.size(); g++) {
+            for (int s = 0; s < subjectList.size(); s++) {
+                // 获取当前班级的该科目的课程数
+                GradeDO grade = gradeList.get(g);
+                SubjectDO subject = subjectList.get(s);
+                long subjectCount = lessonList.stream().filter(item -> item.getGrade().getId().equals(grade.getId()) && item.getSubject().getId().equals(subject.getId())).count();
+                long minCountPerDay = subjectCount / numDays;
+                long maxCountPerDay;
+                if (subjectCount % numDays == 0) {
+                    maxCountPerDay = minCountPerDay;
+                } else {
+                    maxCountPerDay = minCountPerDay + 1;
+                }
+                for (int w = 0; w < numDays; w++) {
+                    LinearExprBuilder countPerDay = LinearExpr.newBuilder();
+                    for (int t = 0; t < teacherList.size(); t++) {
+                        for (int y = 0; y < timeSlotPerDay; y++) {
+                            countPerDay.add(x[t][g][s][w][y]);
+                        }
+                    }
+                    model.addLinearConstraint(countPerDay, minCountPerDay, maxCountPerDay);
+                }
+            }
+        }
+
+        //3.5：如果当天课程数大于1，则课程必须连续
 
 
         //3.2：每个班级的课程数是固定的
@@ -302,7 +347,11 @@ public class TimetableServiceImpl implements TimetableService {
         CpSolver solver = new CpSolver();
         CpSolverStatus status = solver.solve(model);
 
+
+        List<Lesson> lessonResolvedList = new ArrayList<>();
         if (status == CpSolverStatus.OPTIMAL || status == CpSolverStatus.FEASIBLE) {
+            CourseTypeDO courseType = courseTypeMapper.selectByType(CourseTypeEnum.NORMAL.getType());
+            List<TimeSlotDO> timeSlotList = timeSlotMapper.selectList();
             for (int t = 0; t < teacherList.size(); t++) {
                 for (int g = 0; g < gradeList.size(); g++) {
                     for (int s = 0; s < subjectList.size(); s++) {
@@ -310,6 +359,17 @@ public class TimetableServiceImpl implements TimetableService {
                             for (int y = 0; y < timeSlotPerDay; y++) {
                                 if (solver.booleanValue(x[t][g][s][w][y])){
                                     System.out.println("教师：" + teacherList.get(t).getName() + "，班级：" + gradeList.get(g).getName() + "，科目：" + subjectList.get(s).getName() + "，安排在周" + w + "的第" + y + "节");
+                                    int sort = y + 2;
+                                    TimeSlotDO timeSlot = timeSlotList.stream().filter(item -> item.getSort() == sort).findFirst().orElseThrow();
+
+                                    Lesson lesson = new Lesson();
+                                    lesson.setSubject(subjectList.get(s));
+                                    lesson.setTeacher(teacherList.get(t));
+                                    lesson.setGrade(gradeList.get(g));
+                                    lesson.setCourseType(courseType);
+                                    lesson.setDayOfWeek(DayOfWeek.of(w + 1));
+                                    lesson.setTimeSlot(timeSlot);
+                                    lessonResolvedList.add(lesson);
                                 }
                             }
                         }
@@ -319,5 +379,7 @@ public class TimetableServiceImpl implements TimetableService {
         } else {
             System.out.println("没有找到答案");
         }
+
+        return lessonResolvedList;
     }
 }

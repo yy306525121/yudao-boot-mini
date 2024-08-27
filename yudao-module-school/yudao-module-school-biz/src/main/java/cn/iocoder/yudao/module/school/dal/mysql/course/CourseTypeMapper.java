@@ -31,4 +31,8 @@ public interface CourseTypeMapper extends BaseMapperX<CourseTypeDO> {
         return selectList(new LambdaQueryWrapperX<CourseTypeDO>()
                 .orderByAsc(CourseTypeDO::getSort));
     }
+
+    default CourseTypeDO selectByType(Integer type) {
+        return selectOne(CourseTypeDO::getType, type);
+    }
 }

@@ -14,6 +14,7 @@ import cn.iocoder.yudao.module.school.convert.timetable.TimetableConvert;
 import cn.iocoder.yudao.module.school.dal.dataobject.timetable.TimetableDO;
 import cn.iocoder.yudao.module.school.service.timetable.TimetableResultService;
 import cn.iocoder.yudao.module.school.service.timetable.TimetableService;
+import cn.iocoder.yudao.module.school.timetable.domain.Lesson;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -57,7 +58,9 @@ public class TimetableController {
             throw exception(TIMETABLE_NOT_EXISTS);
         }
 
-        timetableService.solve(timetableId);
+        List<Lesson> lessonList = timetableService.solve(timetableId);
+
+        timetableResultService.createTimetableResultBatch(timetableId, lessonList);
 
         return success(true);
     }

@@ -36,4 +36,7 @@ public class TimetableSettingRespVO {
 
     @Schema(description = "偏好节次")
     private Set<Long> preferTimeSlotIds;
+
+    private Integer ordinaryCount;
+    private Integer continuousCount;
 }

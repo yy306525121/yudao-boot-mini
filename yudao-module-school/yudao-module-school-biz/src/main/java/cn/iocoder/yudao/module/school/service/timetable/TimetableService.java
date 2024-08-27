@@ -52,5 +52,5 @@ public interface TimetableService {
 
     List<Lesson> generateProblem(Long id);
 
-    void solve(Long timetableId);
+    List<Lesson> solve(Long timetableId);
 }
