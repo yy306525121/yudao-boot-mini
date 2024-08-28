@@ -210,6 +210,21 @@ public class TimetableServiceImpl implements TimetableService {
                 }
             }
         }
+        //2.2：辅助变量，用于存储是否和下一节课连续
+        Literal[][][][][] consecutive = new Literal[teacherList.size()][gradeList.size()][subjectList.size()][numDays][timeSlotPerDay];
+        for (int t = 0; t < teacherList.size(); t++) {
+            for (int g = 0; g < gradeList.size(); g++) {
+                for (int s = 0; s < subjectList.size(); s++) {
+                    for (int w = 0; w < numDays; w++) {
+                        for (int y = 0; y < timeSlotPerDay; y++) {
+                            consecutive[t][g][s][w][y] = model.newBoolVar("consecutive[" + teacherList.get(t).getName() + "][" +
+                                    gradeList.get(g).getName() + "][" + subjectList.get(s).getName() + "][" +
+                                    w + "][" + y + "]");
+                        }
+                    }
+                }
+            }
+        }
 
         //3：约束条件
         //3.1：每个班级每个科目只能是指定的老师
@@ -292,49 +307,16 @@ public class TimetableServiceImpl implements TimetableService {
                 }
             }
         }
-
-        //3.5：如果当天课程数大于1，则课程必须连续
-
-
-        //3.2：每个班级的课程数是固定的
-        // gradeLessonMap.forEach((grade, gradeLessonList) -> {
-        //     List<SubjectDO> gradeSubjectList = gradeLessonList.stream().map(Lesson::getSubject).distinct().toList();
-        //     for (SubjectDO subject : gradeSubjectList) {
-        //             LinearExpr sumExpr = LinearExpr.sum(
-        //                     IntStream.range(0, numDays).boxed().flatMap(day -> Arrays.stream(x[teacherList.indexOf(teacher)][gradeList.indexOf(grade)][subjectList.indexOf(subject)][day], 0, timeSlotPerDay)).toArray(Literal[]::new)
-        //             );
-        //             long subjectCount = gradeLessonList.stream().filter(item -> item.getSubject().getId().equals(subject.getId())).count();
-        //             model.addEquality(sumExpr, subjectCount);
-        //     }
-        // });
-
-
-
-        // Map<TeacherDO, List<Lesson>> teacherLessonMap = lessonList.stream().collect(Collectors.groupingBy(Lesson::getTeacher));
-        // teacherLessonMap.forEach((teacher, teacherLessonList) -> {
-        //     // 获取当前教师教授的班级
-        //     List<GradeDO> teacherGradeList = teacherLessonList.stream().map(Lesson::getGrade).distinct().toList();
-        //     for (GradeDO grade : teacherGradeList) {
-        //         // 该名教师，当前年级的所授的所有课程
-        //         List<SubjectDO> teacherGradeSubjectList = teacherLessonList.stream().filter(item -> item.getGrade().getId().equals(grade.getId())).map(Lesson::getSubject).distinct().toList();
-        //         for (SubjectDO subject : teacherGradeSubjectList) {
-        //             LinearExpr sumExpr = LinearExpr.sum(IntStream.range(0, numDays).boxed().flatMap(day -> Arrays.stream(x[teacherList.indexOf(teacher)][gradeList.indexOf(grade)][subjectList.indexOf(subject)][day], 0, timeSlotPerDay)).toArray(Literal[]::new));
-        //             model.addGreaterOrEqual(sumExpr, 1);
-        //         }
-        //     }
-        // });
         //3.2：每个班级的每个科目的课时数固定
         gradeLessonMap.forEach((grade, gradeLessonList) -> {
             // 该班级的所有科目
             List<SubjectDO> gradeSubjectList = gradeLessonList.stream().map(Lesson::getSubject).distinct().toList();
-            // 该班级的所有教师
-            List<TeacherDO> gradeTeacherList = gradeLessonList.stream().map(Lesson::getTeacher).distinct().toList();
 
             for (SubjectDO subject : gradeSubjectList) {
                 LinearExpr sumExpr = LinearExpr.sum(
                         teacherList.stream()
                                 .flatMap(teacher -> IntStream.range(0, numDays).boxed()
-                                        .flatMap(day -> IntStream.range(0, timeSlotPerDay).mapToObj(sort -> x[teacherList.indexOf(teacher)][gradeList.indexOf(grade)][subjectList.indexOf(subject)][day][sort])))
+                                        .flatMap(day -> Arrays.stream(x[teacherList.indexOf(teacher)][gradeList.indexOf(grade)][subjectList.indexOf(subject)][day], 0, timeSlotPerDay)))
                                 .toArray(Literal[]::new)
                 );
                 // 获取对应课程的数量
@@ -342,6 +324,48 @@ public class TimetableServiceImpl implements TimetableService {
                 model.addEquality(sumExpr, subjectCount);
             }
         });
+        //3.4：每个老师每天在每个班最多教两节相同的课程，如果有两节相同的课程，课程必须连着上，并且不能在第5节和第6节
+        for (int t = 0; t < teacherList.size(); t++) {
+            for (int g = 0; g < gradeList.size(); g++) {
+                for (int w = 0; w < numDays; w++) {
+                    for (int s = 0; s < subjectList.size(); s++) {
+                        // 计算这门课在这一天的总课程数
+                        List<Literal> subjectCount = new ArrayList<>();
+                        for (int y = 0; y < timeSlotPerDay; y++) {
+                            subjectCount.add(x[t][g][s][w][y]);
+                        }
+                        LinearExpr totalSubjectExpr = LinearExpr.sum(subjectCount.toArray(Literal[]::new));
+
+                        LinearExprBuilder builder = LinearExpr.newBuilder();
+                        builder.add(totalSubjectExpr).add(-1);
+
+                        // 创建变量，用来判断是否需要连续
+                        List<Literal> consecutiveList = new ArrayList<>();
+                        for (int y = 0; y < timeSlotPerDay; y++) {
+                            consecutiveList.add(consecutive[t][g][s][w][y]);
+                        }
+                        LinearExpr consecutiveSum = LinearExpr.sum(consecutiveList.toArray(Literal[]::new));
+
+                        //2 节课，consecutive_sum 为 1
+                        //1 节课，consecutive_sum 为 0
+                        //0 节课，consecutive_sum 为 0
+                        model.addGreaterOrEqual(consecutiveSum, builder);
+
+                        // 连续性约束
+                        for (int y = 0; y < timeSlotPerDay - 1; y++) {
+                            model.addBoolAnd(new Literal[]{x[t][g][s][w][y], x[t][g][s][w][y + 1]})
+                                    .onlyEnforceIf(consecutive[t][g][s][w][y]);
+                            // 连续性为假时，至少有一节为假
+                            model.addBoolOr(new Literal[]{x[t][g][s][w][y].not(), x[t][g][s][w][y + 1].not()})
+                                    .onlyEnforceIf(consecutive[t][g][s][w][y].not());
+                        }
+
+                        // 3. 不能在第5节和第6节安排连续的两节课
+                        model.addAtMostOne(new Literal[]{x[t][g][s][w][4], x[t][g][s][w][5]});
+                    }
+                }
+            }
+        }
 
 
         CpSolver solver = new CpSolver();
