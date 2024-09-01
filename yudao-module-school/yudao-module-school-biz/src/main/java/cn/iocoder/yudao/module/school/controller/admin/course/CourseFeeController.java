@@ -1,10 +1,13 @@
 package cn.iocoder.yudao.module.school.controller.admin.course;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.module.school.controller.admin.course.vo.*;
+import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherListReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherPageReqVO;
 import cn.iocoder.yudao.module.school.convert.course.CourseFeeConvert;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseFeeDO;
@@ -12,12 +15,14 @@ import cn.iocoder.yudao.module.school.dal.dataobject.course.TimeSlotDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.grade.GradeDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.subject.SubjectDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
+import cn.iocoder.yudao.module.school.enums.course.CourseTypeEnum;
 import cn.iocoder.yudao.module.school.rule.calculate.RuleCalculateHandler;
 import cn.iocoder.yudao.module.school.service.course.CourseFeeService;
 import cn.iocoder.yudao.module.school.service.course.TimeSlotService;
 import cn.iocoder.yudao.module.school.service.grade.GradeService;
 import cn.iocoder.yudao.module.school.service.subject.SubjectService;
 import cn.iocoder.yudao.module.school.service.teacher.TeacherService;
+import com.alibaba.excel.EasyExcel;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,9 +33,13 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.EXPORT;
@@ -73,7 +82,6 @@ public class CourseFeeController {
         teacherPageReqVO.setPageSize(pageReqVO.getPageSize());
         teacherPageReqVO.setIds(teacherIds);
         PageResult<TeacherDO> pageResult = teacherService.getTeacherPage(teacherPageReqVO);
-
 
         return success(CourseFeeConvert.INSTANCE.convertPage(pageResult, courseFeeList));
     }
@@ -138,9 +146,151 @@ public class CourseFeeController {
     @Operation(summary = "导出课时费明细 Excel")
     @PreAuthorize("@ss.hasPermission('school:course-fee:export')")
     @ApiAccessLog(operateType = EXPORT)
-    public void exportCourseFeeExcel(@Valid CourseFeePageReqVO pageReqVO,
+    public void exportCourseFeeExcel(@Valid CourseFeeExportReqVO pageReqVO,
               HttpServletResponse response) throws IOException {
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("utf-8");
+        String fileName = URLEncoder.encode("测试", "UTF-8").replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
 
+        LocalDate date = pageReqVO.getDate();
+        LocalDate startDate = date.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate endDate = date.with(TemporalAdjusters.lastDayOfMonth());
+
+        CourseFeeListReqVO listReqVO = new CourseFeeListReqVO();
+        listReqVO.setStartDate(startDate);
+        listReqVO.setEndDate(endDate);
+        List<CourseFeeDO> courseFeeList = courseFeeService.getCourseFeeList(listReqVO);
+        List<Long> teacherIdList = courseFeeList.stream().map(CourseFeeDO::getTeacherId).toList();
+        List<TeacherDO> teacherList = teacherService.getTeacherListByIds(teacherIdList);
+        List<List<Object>> data = data(date, courseFeeList, teacherList);
+
+
+        if (CollUtil.isEmpty(courseFeeList)) {
+            System.out.println("aaa");
+        }
+
+        EasyExcel.write(response.getOutputStream()).head(head(date)).sheet("模板").doWrite(data);
+    }
+
+    private List<List<Object>> data(LocalDate date, List<CourseFeeDO> courseFeeList, List<TeacherDO> teacherList) {
+        List<List<Object>> dataList = new ArrayList<>();
+
+        teacherList = teacherList.stream().sorted(Comparator.comparingInt(TeacherDO::getSort)).toList();
+
+        //1:早自习
+        List<TimeSlotDO> timeSlotMorningList = timeSlotService.getTimeSlotByType(CourseTypeEnum.MORNING.getType());
+        List<Long> timeSlotMorningIdList = timeSlotMorningList.stream().map(TimeSlotDO::getId).toList();
+        for (TeacherDO teacher : teacherList) {
+            List<CourseFeeDO> morningCourseFeeList = courseFeeList.stream()
+                    .filter(item -> timeSlotMorningIdList.contains(item.getTimeSlotId()) &&
+                            item.getTeacherId().equals(teacher.getId()))
+                    .toList();
+            if (CollUtil.isNotEmpty(morningCourseFeeList)) {
+                List<Object> dataRowList = new ArrayList<>();
+                // 汇总
+                // double sum = morningCourseFeeList.stream().mapToDouble(item -> item.getCount().doubleValue()).sum();
+
+                dataRowList.add("早自习");
+                dataRowList.add(teacher.getName());
+                dataRowList.add("SUM(D" + dataList.size() + 1 + ":AJ" + dataList.size() + 1 + ")");
+                dataRowList.add("");
+                dataRowList.add("");
+
+                LocalDate startDate = date.with(TemporalAdjusters.firstDayOfMonth());
+                LocalDate endDate = date.with(TemporalAdjusters.lastDayOfMonth());
+                while (!startDate.isAfter(endDate)) {
+                    LocalDate finalStartDate = startDate;
+                    List<CourseFeeDO> currentDateCourseFeeList = morningCourseFeeList.stream().filter(item -> item.getDate().isEqual(finalStartDate)).toList();
+                    if (CollUtil.isNotEmpty(currentDateCourseFeeList)) {
+                        double currentSum = currentDateCourseFeeList.stream().mapToDouble(item -> item.getCount().doubleValue()).sum();
+                        dataRowList.add(currentSum);
+                    } else {
+                        dataRowList.add(0);
+                    }
+                    startDate = startDate.plusDays(1);
+                }
+                dataList.add(dataRowList);
+            }
+        }
+
+        List<GradeDO> gradeList = gradeService.getGradeListByParentIds(List.of(0L));
+        gradeList = gradeList.stream().sorted(Comparator.comparingInt(GradeDO::getSort)).toList();
+        for (GradeDO grade : gradeList) {
+            List<GradeDO> subGradeList = gradeService.getGradeListByParentIds(List.of(grade.getId()));
+            List<Long> subGradeIdList = subGradeList.stream().map(GradeDO::getId).toList();
+
+            for (TeacherDO teacher : teacherList) {
+                List<CourseFeeDO> currentCourseFeeList = courseFeeList.stream().filter(item -> item.getTeacherId().equals(teacher.getId()) && subGradeIdList.contains(item.getGradeId())).toList();
+
+                if (CollUtil.isNotEmpty(currentCourseFeeList)) {
+                    List<Object> dataRowList = new ArrayList<>();
+
+                    // 汇总
+                    // double sum = currentCourseFeeList.stream().mapToDouble(item -> item.getCount().doubleValue()).sum();
+
+                    dataRowList.add(grade.getName());
+                    dataRowList.add(teacher.getName());
+                    dataRowList.add("SUM(D" + dataList.size() + 1 + ":AJ" + dataList.size() + 1 + ")");
+                    dataRowList.add("");
+                    dataRowList.add("");
+
+                    LocalDate startDate = date.with(TemporalAdjusters.firstDayOfMonth());
+                    LocalDate endDate = date.with(TemporalAdjusters.lastDayOfMonth());
+                    while (!startDate.isAfter(endDate)) {
+                        LocalDate finalStartDate = startDate;
+                        List<CourseFeeDO> currentDateCourseFeeList = currentCourseFeeList.stream().filter(item -> item.getDate().isEqual(finalStartDate)).toList();
+                        if (CollUtil.isNotEmpty(currentDateCourseFeeList)) {
+                            double currentSum = currentDateCourseFeeList.stream().mapToDouble(item -> item.getCount().doubleValue()).sum();
+                            dataRowList.add(currentSum);
+                        } else {
+                            dataRowList.add(0);
+                        }
+                        startDate = startDate.plusDays(1);
+                    }
+                    dataList.add(dataRowList);
+                }
+            }
+        }
+
+
+        return dataList;
+    }
+
+    private List<List<String>> head(LocalDate date) {
+        List<List<String>> list = new ArrayList<>();
+
+        List<String> classHead = new ArrayList<>();
+        classHead.add("年级");
+        list.add(classHead);
+
+        List<String> teacherHead = new ArrayList<>();
+        teacherHead.add("教师");
+        list.add(teacherHead);
+
+        List<String> summaryHead = new ArrayList<>();
+        summaryHead.add("汇总");
+        list.add(summaryHead);
+
+        List<String> dutyHead = new ArrayList<>();
+        dutyHead.add("值班");
+        list.add(dutyHead);
+
+        List<String> remarkHead = new ArrayList<>();
+        remarkHead.add("备注\n" + "（调课、早读、班主任看自习等）");
+        list.add(remarkHead);
+
+        LocalDate startDate = date.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate endDate = date.with(TemporalAdjusters.lastDayOfMonth());
+        while (!startDate.isAfter(endDate)) {
+            List<String> dateHead = new ArrayList<>();
+            dateHead.add(LocalDateTimeUtil.format(startDate, "MM-dd"));
+            list.add(dateHead);
+
+            startDate = startDate.plusDays(1);
+        }
+
+        return list;
     }
 
 
