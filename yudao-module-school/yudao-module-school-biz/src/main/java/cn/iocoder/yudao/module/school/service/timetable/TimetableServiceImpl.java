@@ -182,44 +182,32 @@ public class TimetableServiceImpl implements TimetableService {
     @Override
     public List<Lesson> solve(Long timetableId) {
         Loader.loadNativeLibraries();
-        int numDays = 6;
+        int dayPerWeek = 6;
         int timeSlotPerDay = 9;
 
         List<Lesson> lessonList = generateProblem(timetableId);
 
         List<TeacherDO> teacherList = lessonList.stream().map(Lesson::getTeacher).distinct().toList();
+        int teacherSize = teacherList.size();
         List<GradeDO> gradeList = lessonList.stream().map(Lesson::getGrade).distinct().toList();
+        int gradeSize = gradeList.size();
         List<SubjectDO> subjectList = lessonList.stream().map(Lesson::getSubject).distinct().toList();
+        int subjectSize = subjectList.size();
 
         //1：建模
         CpModel model = new CpModel();
 
         //2：创建变量
-        Literal[][][][][] x = new Literal[teacherList.size()][gradeList.size()][subjectList.size()][numDays][timeSlotPerDay];
+        Literal[][][][][] x = new Literal[teacherList.size()][gradeList.size()][subjectList.size()][dayPerWeek][timeSlotPerDay];
         //2.1：教师t在年级g上科目s的时间是周w的第y节
-        for (int t = 0; t < teacherList.size(); t++) {
-            for (int g = 0; g < gradeList.size(); g++) {
-                for (int s = 0; s < subjectList.size(); s++) {
-                    for (int w = 0; w < numDays; w++) {
-                        for (int y = 0; y < timeSlotPerDay; y++) {
-                            x[t][g][s][w][y] = model.newBoolVar("x[" + teacherList.get(t).getName() + "][" +
-                                    gradeList.get(g).getName() + "][" + subjectList.get(s).getName() + "][" +
-                                    w + "][" + y + "]");
-                        }
-                    }
-                }
-            }
-        }
-        //2.2：辅助变量，用于存储是否和下一节课连续
-        Literal[][][][][] consecutive = new Literal[teacherList.size()][gradeList.size()][subjectList.size()][numDays][timeSlotPerDay];
-        for (int t = 0; t < teacherList.size(); t++) {
-            for (int g = 0; g < gradeList.size(); g++) {
-                for (int s = 0; s < subjectList.size(); s++) {
-                    for (int w = 0; w < numDays; w++) {
-                        for (int y = 0; y < timeSlotPerDay; y++) {
-                            consecutive[t][g][s][w][y] = model.newBoolVar("consecutive[" + teacherList.get(t).getName() + "][" +
-                                    gradeList.get(g).getName() + "][" + subjectList.get(s).getName() + "][" +
-                                    w + "][" + y + "]");
+        for (int teacherIndex = 0; teacherIndex < teacherSize; teacherIndex++) {
+            for (int gradeIndex = 0; gradeIndex < gradeSize; gradeIndex++) {
+                for (int subjectIndex = 0; subjectIndex < subjectSize; subjectIndex++) {
+                    for (int week = 0; week < dayPerWeek; week++) {
+                        for (int sort = 0; sort < timeSlotPerDay; sort++) {
+                            x[teacherIndex][gradeIndex][subjectIndex][week][sort] = model.newBoolVar("x[" + teacherList.get(teacherIndex).getName() + "][" +
+                                    gradeList.get(gradeIndex).getName() + "][" + subjectList.get(subjectIndex).getName() + "][" +
+                                    week + "][" + sort + "]");
                         }
                     }
                 }
@@ -229,22 +217,25 @@ public class TimetableServiceImpl implements TimetableService {
         //3：约束条件
         //3.1：每个班级每个科目只能是指定的老师
         Map<GradeDO, List<Lesson>> gradeLessonMap = lessonList.stream().collect(Collectors.groupingBy(Lesson::getGrade));
-        for (int g = 0; g < gradeList.size(); g++) {
-            for (int s = 0; s < subjectList.size(); s++) {
+        for (int gradeIndex = 0; gradeIndex < gradeList.size(); gradeIndex++) {
+            for (int subjectIndex = 0; subjectIndex < subjectList.size(); subjectIndex++) {
                 // 获取该班级该科目的任课老师
-                int finalG = g;
-                int finalS = s;
-                Optional<Lesson> opt = lessonList.stream().filter(item -> item.getGrade().getId().equals(gradeList.get(finalG).getId()) && item.getSubject().getId().equals(subjectList.get(finalS).getId())).findFirst();
+                int finalG = gradeIndex;
+                int finalS = subjectIndex;
+                Optional<Lesson> opt = lessonList.stream()
+                        .filter(item -> item.getGrade().getId().equals(gradeList.get(finalG).getId()) &&
+                                item.getSubject().getId().equals(subjectList.get(finalS).getId()))
+                        .findFirst();
                 if (opt.isEmpty()) {
                     continue;
                 }
                 Lesson lesson = opt.get();
-                for (int w = 0; w < numDays; w++) {
-                    for (int y = 0; y < timeSlotPerDay; y++) {
-                        for (int t = 0; t < teacherList.size(); t++) {
-                            if (!teacherList.get(t).getId().equals(lesson.getTeacher().getId())) {
+                for (int week = 0; week < dayPerWeek; week++) {
+                    for (int sort = 0; sort < timeSlotPerDay; sort++) {
+                        for (int teacherIndex = 0; teacherIndex < teacherList.size(); teacherIndex++) {
+                            if (!teacherList.get(teacherIndex).getId().equals(lesson.getTeacher().getId())) {
                                 // 如果不是指定的教师，值必须为0
-                                model.addEquality(x[t][g][s][w][y], 0);
+                                model.addEquality(x[teacherIndex][gradeIndex][subjectIndex][week][sort], 0);
                             }
                         }
                     }
@@ -253,61 +244,61 @@ public class TimetableServiceImpl implements TimetableService {
         }
 
         //3.2：每个节次同时只能有一节课
-        for (int g = 0; g < gradeList.size(); g++) {
-            for (int w = 0; w < numDays; w++) {
-                for (int y = 0; y < timeSlotPerDay; y++) {
-                    List<Literal> subjects = new ArrayList<>();
+        for (int gradeIndex = 0; gradeIndex < gradeList.size(); gradeIndex++) {
+            for (int week = 0; week < dayPerWeek; week++) {
+                for (int sort = 0; sort < timeSlotPerDay; sort++) {
+                    List<Literal> possibleSubjectList = new ArrayList<>();
                     for (int s = 0; s < subjectList.size(); s++) {
                         for (int t = 0; t < teacherList.size(); t++) {
-                            subjects.add(x[t][g][s][w][y]);
+                            possibleSubjectList.add(x[t][gradeIndex][s][week][sort]);
                         }
                     }
-                    model.addAtMostOne(subjects);
+                    model.addAtMostOne(possibleSubjectList);
                 }
             }
         }
 
         //3.3：每个教师同时最多只能上一节课
-        for (int t = 0; t < teacherList.size(); t++) {
-            for (int w = 0; w < numDays; w++) {
-                for (int y = 0; y < timeSlotPerDay; y++) {
-                    List<Literal> teacherConflict = new ArrayList<>();
+        for (int teacherIndex = 0; teacherIndex < teacherList.size(); teacherIndex++) {
+            for (int week = 0; week < dayPerWeek; week++) {
+                for (int sort = 0; sort < timeSlotPerDay; sort++) {
+                    List<Literal> possibleTeacherList = new ArrayList<>();
                     for (int g = 0; g < gradeList.size(); g++) {
                         for (int s = 0; s < subjectList.size(); s++) {
-                            teacherConflict.add(x[t][g][s][w][y]);
+                            possibleTeacherList.add(x[teacherIndex][g][s][week][sort]);
                         }
                     }
-                    model.addAtMostOne(teacherConflict);
+                    model.addAtMostOne(possibleTeacherList);
                 }
             }
         }
 
-        //3.4：班级科目天的最大课程次数（每天上6天课，如果课程数小于6就每天最多一节，如果大于6小于12就每天最多2节，如果大于12就每天最多3节，以此类推）
-        for (int g = 0; g < gradeList.size(); g++) {
-            for (int s = 0; s < subjectList.size(); s++) {
+        //3.4：班级科目天的最大课程次数（每周上6天课，如果课程数小于6就每天最多一节，如果大于6小于12就每天最多2节，如果大于12就每天最多3节，以此类推）
+        for (int gradeIndex = 0; gradeIndex < gradeSize; gradeIndex++) {
+            for (int subjectIndex = 0; subjectIndex < subjectSize; subjectIndex++) {
                 // 获取当前班级的该科目的课程数
-                GradeDO grade = gradeList.get(g);
-                SubjectDO subject = subjectList.get(s);
+                GradeDO grade = gradeList.get(gradeIndex);
+                SubjectDO subject = subjectList.get(subjectIndex);
                 long subjectCount = lessonList.stream().filter(item -> item.getGrade().getId().equals(grade.getId()) && item.getSubject().getId().equals(subject.getId())).count();
-                long minCountPerDay = subjectCount / numDays;
+                long minCountPerDay = subjectCount / dayPerWeek;
                 long maxCountPerDay;
-                if (subjectCount % numDays == 0) {
+                if (subjectCount % dayPerWeek == 0) {
                     maxCountPerDay = minCountPerDay;
                 } else {
                     maxCountPerDay = minCountPerDay + 1;
                 }
-                for (int w = 0; w < numDays; w++) {
+                for (int w = 0; w < dayPerWeek; w++) {
                     LinearExprBuilder countPerDay = LinearExpr.newBuilder();
                     for (int t = 0; t < teacherList.size(); t++) {
                         for (int y = 0; y < timeSlotPerDay; y++) {
-                            countPerDay.add(x[t][g][s][w][y]);
+                            countPerDay.add(x[t][gradeIndex][subjectIndex][w][y]);
                         }
                     }
                     model.addLinearConstraint(countPerDay, minCountPerDay, maxCountPerDay);
                 }
             }
         }
-        //3.2：每个班级的每个科目的课时数固定
+        //3.5：每个班级的每个科目的课时数固定
         gradeLessonMap.forEach((grade, gradeLessonList) -> {
             // 该班级的所有科目
             List<SubjectDO> gradeSubjectList = gradeLessonList.stream().map(Lesson::getSubject).distinct().toList();
@@ -315,7 +306,7 @@ public class TimetableServiceImpl implements TimetableService {
             for (SubjectDO subject : gradeSubjectList) {
                 LinearExpr sumExpr = LinearExpr.sum(
                         teacherList.stream()
-                                .flatMap(teacher -> IntStream.range(0, numDays).boxed()
+                                .flatMap(teacher -> IntStream.range(0, dayPerWeek).boxed()
                                         .flatMap(day -> Arrays.stream(x[teacherList.indexOf(teacher)][gradeList.indexOf(grade)][subjectList.indexOf(subject)][day], 0, timeSlotPerDay)))
                                 .toArray(Literal[]::new)
                 );
@@ -324,50 +315,39 @@ public class TimetableServiceImpl implements TimetableService {
                 model.addEquality(sumExpr, subjectCount);
             }
         });
-        //3.4：每个老师每天在每个班最多教两节相同的课程，如果有两节相同的课程，课程必须连着上，并且不能在第5节和第6节
-        for (int t = 0; t < teacherList.size(); t++) {
-            for (int g = 0; g < gradeList.size(); g++) {
-                for (int w = 0; w < numDays; w++) {
-                    for (int s = 0; s < subjectList.size(); s++) {
-                        // 计算这门课在这一天的总课程数
-                        List<Literal> subjectCount = new ArrayList<>();
-                        for (int y = 0; y < timeSlotPerDay; y++) {
-                            subjectCount.add(x[t][g][s][w][y]);
+
+
+        // 3.6 如果当天存在多节相同的课，那么课程必须连续
+        gradeLessonMap.forEach((grade, gradeLessonList) -> {
+            // 该班级的所有科目
+            List<SubjectDO> gradeSubjectList = gradeLessonList.stream().map(Lesson::getSubject).distinct().toList();
+
+            for (SubjectDO subject : gradeSubjectList) {
+                //该班级的老师
+                Lesson lesson = gradeLessonList.stream().filter(item -> item.getSubject().getId().equals(subject.getId())).findFirst().orElseThrow();
+                int teacherIndex = teacherList.indexOf(lesson.getTeacher());
+                int gradeIndex = gradeList.indexOf(grade);
+                int subjectIndex = subjectList.indexOf(subject);
+
+                for (int week = 0; week < dayPerWeek; week++) {
+                    for (int sort1 = 0; sort1 < timeSlotPerDay; sort1++) {
+                        for (int sort2 = sort1 + 1; sort2 < timeSlotPerDay; sort2++) {
+                            if (Math.abs(sort1 - sort2) != 1) {
+                                model.addBoolOr(new Literal[]{x[teacherIndex][gradeIndex][subjectIndex][week][sort1].not(),
+                                                x[teacherIndex][gradeIndex][subjectIndex][week][sort2].not(),
+                                        })
+                                        .onlyEnforceIf(new Literal[] {
+                                                x[teacherIndex][gradeIndex][subjectIndex][week][sort1],
+                                                x[teacherIndex][gradeIndex][subjectIndex][week][sort2]
+                                        });
+                            }
                         }
-                        LinearExpr totalSubjectExpr = LinearExpr.sum(subjectCount.toArray(Literal[]::new));
-
-                        LinearExprBuilder builder = LinearExpr.newBuilder();
-                        builder.add(totalSubjectExpr).add(-1);
-
-                        // 创建变量，用来判断是否需要连续
-                        List<Literal> consecutiveList = new ArrayList<>();
-                        for (int y = 0; y < timeSlotPerDay; y++) {
-                            consecutiveList.add(consecutive[t][g][s][w][y]);
-                        }
-                        LinearExpr consecutiveSum = LinearExpr.sum(consecutiveList.toArray(Literal[]::new));
-
-                        //2 节课，consecutive_sum 为 1
-                        //1 节课，consecutive_sum 为 0
-                        //0 节课，consecutive_sum 为 0
-                        model.addGreaterOrEqual(consecutiveSum, builder);
-
-                        // 连续性约束
-                        for (int y = 0; y < timeSlotPerDay - 1; y++) {
-                            model.addBoolAnd(new Literal[]{x[t][g][s][w][y], x[t][g][s][w][y + 1]})
-                                    .onlyEnforceIf(consecutive[t][g][s][w][y]);
-                            // 连续性为假时，至少有一节为假
-                            model.addBoolOr(new Literal[]{x[t][g][s][w][y].not(), x[t][g][s][w][y + 1].not()})
-                                    .onlyEnforceIf(consecutive[t][g][s][w][y].not());
-                        }
-
-                        // 3. 不能在第5节和第6节安排连续的两节课
-                        model.addAtMostOne(new Literal[]{x[t][g][s][w][4], x[t][g][s][w][5]});
                     }
                 }
             }
-        }
+        });
 
-
+        //4：定义求解器
         CpSolver solver = new CpSolver();
         CpSolverStatus status = solver.solve(model);
 
@@ -379,7 +359,7 @@ public class TimetableServiceImpl implements TimetableService {
             for (int t = 0; t < teacherList.size(); t++) {
                 for (int g = 0; g < gradeList.size(); g++) {
                     for (int s = 0; s < subjectList.size(); s++) {
-                        for (int w = 0; w < numDays; w++) {
+                        for (int w = 0; w < dayPerWeek; w++) {
                             for (int y = 0; y < timeSlotPerDay; y++) {
                                 if (solver.booleanValue(x[t][g][s][w][y])){
                                     System.out.println("教师：" + teacherList.get(t).getName() + "，班级：" + gradeList.get(g).getName() + "，科目：" + subjectList.get(s).getName() + "，安排在周" + w + "的第" + y + "节");
