@@ -35,6 +35,7 @@ import java.time.DayOfWeek;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.TIMETABLE_NAME_DUPLICATE;
@@ -194,6 +195,10 @@ public class TimetableServiceImpl implements TimetableService {
         List<SubjectDO> subjectList = lessonList.stream().map(Lesson::getSubject).distinct().toList();
         int subjectSize = subjectList.size();
 
+        SubjectDO chineseSubject = subjectList.stream().filter(item -> item.getName().equals("语文")).findFirst().orElseThrow();
+        SubjectDO englishSubject = subjectList.stream().filter(item -> item.getName().equals("英语")).findFirst().orElseThrow();
+
+
         //1：建模
         CpModel model = new CpModel();
 
@@ -213,6 +218,15 @@ public class TimetableServiceImpl implements TimetableService {
                 }
             }
         }
+
+        //2.2：辅助变量 1、3、5语文课尽量排在最前名，2、4、6英语尽量排在最前面
+        Literal[][] topLessonPreferred = new Literal[gradeSize][dayPerWeek];
+        for (int gradeIndex = 0; gradeIndex < gradeSize; gradeIndex++) {
+            for (int week = 0; week < dayPerWeek; week++) {
+                topLessonPreferred[gradeIndex][week] = model.newBoolVar("top_lesson_preferred[" + gradeList.get(gradeIndex).getName() + "][" + week + "]");
+            }
+        }
+
 
         //3：约束条件
         //3.1：每个班级每个科目只能是指定的老师
@@ -332,13 +346,16 @@ public class TimetableServiceImpl implements TimetableService {
                 for (int week = 0; week < dayPerWeek; week++) {
                     for (int sort1 = 0; sort1 < timeSlotPerDay; sort1++) {
                         for (int sort2 = sort1 + 1; sort2 < timeSlotPerDay; sort2++) {
-                            if (Math.abs(sort1 - sort2) != 1) {
+                            // 连堂课不能安排在第5节和第6节
+                            if ((sort1 == 4 && sort2 == 5) || (sort1 == 5 && sort2 == 4)) {
                                 model.addBoolOr(new Literal[]{x[teacherIndex][gradeIndex][subjectIndex][week][sort1].not(),
-                                                x[teacherIndex][gradeIndex][subjectIndex][week][sort2].not(),
-                                        })
-                                        .onlyEnforceIf(new Literal[] {
-                                                x[teacherIndex][gradeIndex][subjectIndex][week][sort1],
-                                                x[teacherIndex][gradeIndex][subjectIndex][week][sort2]
+                                        x[teacherIndex][gradeIndex][subjectIndex][week][sort2].not(),
+                                });
+                            }
+                            if (Math.abs(sort1 - sort2) != 1) {
+                                model.addBoolOr(new Literal[]{
+                                            x[teacherIndex][gradeIndex][subjectIndex][week][sort1].not(),
+                                            x[teacherIndex][gradeIndex][subjectIndex][week][sort2].not(),
                                         });
                             }
                         }
@@ -347,8 +364,44 @@ public class TimetableServiceImpl implements TimetableService {
             }
         });
 
+        //3.7：1、3、5语文课尽量往前排，2、4、6英语课尽量往前排
+        LinearExprBuilder obj = LinearExpr.newBuilder();
+        gradeLessonMap.forEach((grade, gradeLessonList) -> {
+            int gradeIndex = gradeList.indexOf(grade);
+            // 该班级的所有科目
+            List<SubjectDO> gradeSubjectList = gradeLessonList.stream().map(Lesson::getSubject).distinct().toList();
+            for (SubjectDO subject : gradeSubjectList) {
+                int subjectIndex = subjectList.indexOf(subject);
+
+                //该班级的老师
+                Lesson lesson = gradeLessonList.stream().filter(item -> item.getSubject().getId().equals(subject.getId())).findFirst().orElseThrow();
+                int teacherIndex = teacherList.indexOf(lesson.getTeacher());
+                for (int week = 0; week < dayPerWeek; week++) {
+                    if (week % 2 == 0 && subject.getId().equals(chineseSubject.getId())) {
+                        // 0、2、4（对应周1、3、5)
+                        for (int sort = 0; sort < timeSlotPerDay; sort++) {
+                            obj.addTerm(x[teacherIndex][gradeIndex][subjectIndex][week][sort], sort);
+                        }
+                        model.minimize(obj);
+                    } else if (week % 2 == 1 && subject.getId().equals(englishSubject.getId())) {
+                        // 1、3、5（对应周2、4、6)
+                        for (int sort = 0; sort < timeSlotPerDay; sort++) {
+                            obj.addTerm(x[teacherIndex][gradeIndex][subjectIndex][week][sort], sort);
+                        }
+                    }
+                }
+            }
+        });
+        model.minimize(obj);
+
+        //固定课程
+        // model.addEquality(x[2][0][1][0][0], 1);
+
+
         //4：定义求解器
         CpSolver solver = new CpSolver();
+        solver.getParameters().setMaxTimeInSeconds(30*60);
+        solver.getParameters().setLogSearchProgress(true);
         CpSolverStatus status = solver.solve(model);
 
 
