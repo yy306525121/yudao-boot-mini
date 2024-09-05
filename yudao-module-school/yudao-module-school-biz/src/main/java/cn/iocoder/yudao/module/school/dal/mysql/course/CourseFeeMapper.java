@@ -19,6 +19,8 @@ public interface CourseFeeMapper extends BaseMapperX<CourseFeeDO> {
     default List<CourseFeeDO> selectList(CourseFeeListReqVO listReqVO) {
         return selectList(new LambdaQueryWrapperX<CourseFeeDO>()
                 .eqIfPresent(CourseFeeDO::getTeacherId, listReqVO.getTeacherId())
+                .inIfPresent(CourseFeeDO::getTimeSlotId, listReqVO.getTimeSlotIdList())
+                .inIfPresent(CourseFeeDO::getGradeId, listReqVO.getGradeIdList())
                 .between(CourseFeeDO::getDate, listReqVO.getStartDate(), listReqVO.getEndDate())
         );
     }

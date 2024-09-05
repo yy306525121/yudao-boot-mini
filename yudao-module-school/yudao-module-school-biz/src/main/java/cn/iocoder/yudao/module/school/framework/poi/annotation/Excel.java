@@ -15,5 +15,21 @@ public @interface Excel {
      */
     String name() default "";
 
+    /**
+     * 是否汇总行
+     */
+    boolean isSummary() default false;
+
+    String summaryExpr() default "";
+
+    /**
+     * 是否是日期格式
+     */
+    boolean isDateTitle() default false;
+
+    /**
+     * 日期标题的格式化
+     */
+    String dateTitleFormat() default "MM月dd日";
 
 }

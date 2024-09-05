@@ -1,15 +1,16 @@
 package cn.iocoder.yudao.module.school.controller.admin.course;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.module.school.controller.admin.course.vo.*;
-import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherListReqVO;
 import cn.iocoder.yudao.module.school.controller.admin.teacher.vo.TeacherPageReqVO;
 import cn.iocoder.yudao.module.school.convert.course.CourseFeeConvert;
 import cn.iocoder.yudao.module.school.dal.dataobject.course.CourseFeeDO;
@@ -25,8 +26,6 @@ import cn.iocoder.yudao.module.school.service.course.TimeSlotService;
 import cn.iocoder.yudao.module.school.service.grade.GradeService;
 import cn.iocoder.yudao.module.school.service.subject.SubjectService;
 import cn.iocoder.yudao.module.school.service.teacher.TeacherService;
-import com.alibaba.excel.EasyExcel;
-import com.alibaba.excel.annotation.ExcelProperty;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,16 +40,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
-import java.net.URLEncoder;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -164,51 +159,85 @@ public class CourseFeeController {
         response.setCharacterEncoding("utf-8");
 
         LocalDate date = pageReqVO.getDate();
-        LocalDate startDate = date.with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate endDate = date.with(TemporalAdjusters.lastDayOfMonth());
-
-        CourseFeeListReqVO listReqVO = new CourseFeeListReqVO();
-        listReqVO.setStartDate(startDate);
-        listReqVO.setEndDate(endDate);
-        List<CourseFeeDO> courseFeeList = courseFeeService.getCourseFeeList(listReqVO);
-        List<Long> teacherIdList = courseFeeList.stream().map(CourseFeeDO::getTeacherId).toList();
-        List<TeacherDO> teacherList = teacherService.getTeacherListByIds(teacherIdList);
-        // List<CourseFeeExportRespVO> data = data(date, courseFeeList, teacherList);
+        // 数据
+        List<CourseFeeExportDetailRespVO> data = getCourseFeeDate(date);
 
         // 创建一个工作簿
         Workbook workbook = new XSSFWorkbook();
-        // 创建一个工作表
-        Sheet sheet = workbook.createSheet("Sheet1");
-
-        // 示例数据
-        List<CourseFeeExportRespVO> data = new ArrayList<>();
-        data.add(new CourseFeeExportRespVO("早读", "张三"));
-
-        int rowNum = 0;
-        // 设置头
-        Field[] allFields = ClassUtil.getDeclaredFields(CourseFeeExportRespVO.class);
-        int headIndex = 0;
-        Row headRow = sheet.createRow(rowNum);
-        for (Field field : allFields) {
+        Sheet sheet1 = workbook.createSheet(date.getMonth().getValue() + "月课时费统计");
+        int sheet1RowNum = 0;
+        Field[] sheet1FieldList = ClassUtil.getDeclaredFields(CourseFeeExportCountRespVO.class);
+        int sheet1HeadIndex = 0;
+        Row sheet1HeadRow = sheet1.createRow(sheet1RowNum);
+        for (Field field : sheet1FieldList) {
             if (field.isAnnotationPresent(Excel.class)) {
                 Excel attr = field.getAnnotation(Excel.class);
                 String name = attr.name();
-                Cell cell = headRow.createCell(headIndex++);
-                cell.setCellValue(name);
+                if (StrUtil.isNotEmpty(name)) {
+                    Cell cell = sheet1HeadRow.createCell(sheet1HeadIndex++);
+                    cell.setCellValue(name);
+                }
             }
         }
 
-        rowNum += 1;
-        // 创建行和单元格并填充数据
-        for (CourseFeeExportRespVO respVo : data) {
-            Row row = sheet.createRow(rowNum++);
+
+
+
+        // 创建一个工作表
+        Sheet sheet2 = workbook.createSheet(date.getMonth().getValue() + "月课时详情");
+
+
+        int sheet2RowNum = 0;
+        // 设置头
+        Field[] sheet2FieldList = ClassUtil.getDeclaredFields(CourseFeeExportDetailRespVO.class);
+        int sheet2HeadIndex = 0;
+        Row sheet2HeadRow = sheet2.createRow(sheet2RowNum);
+        for (Field field : sheet2FieldList) {
+            if (field.isAnnotationPresent(Excel.class)) {
+                Excel attr = field.getAnnotation(Excel.class);
+
+                String name = null;
+                if (attr.isDateTitle() && field.getName().startsWith("day")) {
+                    String fieldName = field.getName();
+                    int sort = Integer.parseInt(fieldName.replaceAll("day", ""));
+                    if (sort <= DateUtil.lengthOfMonth(date.getMonthValue(), DateUtil.isLeapYear(date.getYear()))) {
+                        LocalDate localDate = LocalDate.of(date.getYear(), date.getMonth(), sort);
+                        name = LocalDateTimeUtil.format(localDate, attr.dateTitleFormat());
+                    }
+                } else {
+                    name = attr.name();
+                }
+
+                if (StrUtil.isNotEmpty(name)) {
+                    Cell cell = sheet2HeadRow.createCell(sheet2HeadIndex++);
+                    cell.setCellValue(name);
+                }
+            }
+        }
+
+        sheet2RowNum += 1;
+        // 数据行
+        for (CourseFeeExportDetailRespVO respVo : data) {
+            Row row = sheet2.createRow(sheet2RowNum++);
             int colNum = 0;
 
-            for (Field field : allFields) {
-                String value = (String) ReflectUtil.getFieldValue(respVo, field);
-
-                Cell cell = row.createCell(colNum++);
-                cell.setCellValue(value);
+            for (Field field : sheet2FieldList) {
+                if (!field.isAnnotationPresent(Excel.class)) {
+                    continue;
+                }
+                Excel attr = field.getAnnotation(Excel.class);
+                if (attr.isSummary()) {
+                    Cell cell = row.createCell(colNum++);
+                    cell.setCellFormula(StrUtil.format("SUM(D{}:AJ{})", sheet2RowNum, sheet2RowNum));
+                } else if (field.getType().getName().equals(String.class.getName())) {
+                    String value = (String) ReflectUtil.getFieldValue(respVo, field);
+                    Cell cell = row.createCell(colNum++);
+                    cell.setCellValue(value);
+                } else if (field.getType().getName().equals(Double.class.getName())) {
+                    Double value = (Double) ReflectUtil.getFieldValue(respVo, field);
+                    Cell cell = row.createCell(colNum++);
+                    cell.setCellValue(value);
+                }
             }
         }
 
@@ -218,128 +247,78 @@ public class CourseFeeController {
         }
     }
 
-    private void getFields(Class<?> clazz) {
-        Field[] fields = ClassUtil.getDeclaredFields(clazz);
-    }
-
-    private List<CourseFeeExportRespVO> data(LocalDate date, List<CourseFeeDO> courseFeeList, List<TeacherDO> teacherList) {
-        List<CourseFeeExportRespVO> dataList = new ArrayList<>();
-
-        teacherList = teacherList.stream().sorted(Comparator.comparingInt(TeacherDO::getSort)).toList();
-
-        //1:早自习
-        List<TimeSlotDO> timeSlotMorningList = timeSlotService.getTimeSlotByType(CourseTypeEnum.MORNING.getType());
-        List<Long> timeSlotMorningIdList = timeSlotMorningList.stream().map(TimeSlotDO::getId).toList();
-        for (TeacherDO teacher : teacherList) {
-            List<CourseFeeDO> morningCourseFeeList = courseFeeList.stream()
-                    .filter(item -> timeSlotMorningIdList.contains(item.getTimeSlotId()) &&
-                            item.getTeacherId().equals(teacher.getId()))
-                    .toList();
-            if (CollUtil.isNotEmpty(morningCourseFeeList)) {
-                CourseFeeExportRespVO item = new CourseFeeExportRespVO();
-                // 汇总
-                // double sum = morningCourseFeeList.stream().mapToDouble(item -> item.getCount().doubleValue()).sum();
-
-                item.setGradeName("早自习");
-                item.setTeacherName(teacher.getName());
-                // dataRowList.add("SUM(D" + dataList.size() + 1 + ":AJ" + dataList.size() + 1 + ")");
-                // dataRowList.add("");
-                // dataRowList.add("");
-
-                // LocalDate startDate = date.with(TemporalAdjusters.firstDayOfMonth());
-                // LocalDate endDate = date.with(TemporalAdjusters.lastDayOfMonth());
-                // while (!startDate.isAfter(endDate)) {
-                //     LocalDate finalStartDate = startDate;
-                //     List<CourseFeeDO> currentDateCourseFeeList = morningCourseFeeList.stream().filter(item -> item.getDate().isEqual(finalStartDate)).toList();
-                //     if (CollUtil.isNotEmpty(currentDateCourseFeeList)) {
-                //         double currentSum = currentDateCourseFeeList.stream().mapToDouble(item -> item.getCount().doubleValue()).sum();
-                //         dataRowList.add(currentSum);
-                //     } else {
-                //         dataRowList.add(0);
-                //     }
-                //     startDate = startDate.plusDays(1);
-                // }
-                dataList.add(item);
-            }
-        }
-
-        List<GradeDO> gradeList = gradeService.getGradeListByParentIds(List.of(0L));
-        gradeList = gradeList.stream().sorted(Comparator.comparingInt(GradeDO::getSort)).toList();
-        for (GradeDO grade : gradeList) {
-            List<GradeDO> subGradeList = gradeService.getGradeListByParentIds(List.of(grade.getId()));
-            List<Long> subGradeIdList = subGradeList.stream().map(GradeDO::getId).toList();
-
-            for (TeacherDO teacher : teacherList) {
-                List<CourseFeeDO> currentCourseFeeList = courseFeeList.stream().filter(item -> item.getTeacherId().equals(teacher.getId()) && subGradeIdList.contains(item.getGradeId())).toList();
-
-                if (CollUtil.isNotEmpty(currentCourseFeeList)) {
-                    List<Object> dataRowList = new ArrayList<>();
-
-                    // 汇总
-                    // double sum = currentCourseFeeList.stream().mapToDouble(item -> item.getCount().doubleValue()).sum();
-
-                    dataRowList.add(grade.getName());
-                    dataRowList.add(teacher.getName());
-                    dataRowList.add("SUM(D" + dataList.size() + 1 + ":AJ" + dataList.size() + 1 + ")");
-                    dataRowList.add("");
-                    dataRowList.add("");
-
-                    LocalDate startDate = date.with(TemporalAdjusters.firstDayOfMonth());
-                    LocalDate endDate = date.with(TemporalAdjusters.lastDayOfMonth());
-                    while (!startDate.isAfter(endDate)) {
-                        LocalDate finalStartDate = startDate;
-                        List<CourseFeeDO> currentDateCourseFeeList = currentCourseFeeList.stream().filter(item -> item.getDate().isEqual(finalStartDate)).toList();
-                        if (CollUtil.isNotEmpty(currentDateCourseFeeList)) {
-                            double currentSum = currentDateCourseFeeList.stream().mapToDouble(item -> item.getCount().doubleValue()).sum();
-                            dataRowList.add(currentSum);
-                        } else {
-                            dataRowList.add(0);
-                        }
-                        startDate = startDate.plusDays(1);
-                    }
-                    // dataList.add(dataRowList);
-                }
-            }
-        }
-
-
-        return dataList;
-    }
-
-    private List<List<String>> head(LocalDate date) {
-        List<List<String>> list = new ArrayList<>();
-
-        List<String> classHead = new ArrayList<>();
-        classHead.add("年级");
-        list.add(classHead);
-
-        List<String> teacherHead = new ArrayList<>();
-        teacherHead.add("教师");
-        list.add(teacherHead);
-
-        List<String> summaryHead = new ArrayList<>();
-        summaryHead.add("汇总");
-        list.add(summaryHead);
-
-        List<String> dutyHead = new ArrayList<>();
-        dutyHead.add("值班");
-        list.add(dutyHead);
-
-        List<String> remarkHead = new ArrayList<>();
-        remarkHead.add("备注\n" + "（调课、早读、班主任看自习等）");
-        list.add(remarkHead);
-
+    private List<CourseFeeExportDetailRespVO> getCourseFeeDate(LocalDate date) {
         LocalDate startDate = date.with(TemporalAdjusters.firstDayOfMonth());
         LocalDate endDate = date.with(TemporalAdjusters.lastDayOfMonth());
-        while (!startDate.isAfter(endDate)) {
-            List<String> dateHead = new ArrayList<>();
-            dateHead.add(LocalDateTimeUtil.format(startDate, "MM-dd"));
-            list.add(dateHead);
 
-            startDate = startDate.plusDays(1);
+        List<CourseFeeExportDetailRespVO> dataList = new ArrayList<>();
+
+
+        //1:早自习
+        List<TimeSlotDO> timeSlotList = timeSlotService.getTimeSlotByType(CourseTypeEnum.MORNING.getType());
+        List<Long> timeSlotIdList = timeSlotList.stream().map(TimeSlotDO::getId).toList();
+        CourseFeeListReqVO listReqVO = new CourseFeeListReqVO();
+        listReqVO.setStartDate(startDate);
+        listReqVO.setEndDate(endDate);
+        listReqVO.setTimeSlotIdList(timeSlotIdList);
+        List<CourseFeeDO> courseFeeList = courseFeeService.getCourseFeeList(listReqVO);
+        List<Long> teacherIdList = courseFeeList.stream().map(CourseFeeDO::getTeacherId).toList();
+        List<TeacherDO> teacherList = teacherService.getTeacherListByIds(teacherIdList);
+        teacherList = teacherList.stream().sorted(Comparator.comparing(TeacherDO::getSort)).toList();
+        for (TeacherDO teacher : teacherList) {
+            CourseFeeExportDetailRespVO data = new CourseFeeExportDetailRespVO();
+            data.setGradeName(CourseTypeEnum.MORNING.getName());
+            data.setTeacherName(teacher.getName());
+            data.setOnDuty(0.0);
+            data.setRemark(0.0);
+
+            LocalDate tempDate = startDate;
+            while (!tempDate.isAfter(endDate)) {
+                LocalDate finalTempDate = tempDate;
+                double sum = courseFeeList.stream().filter(item -> item.getTeacherId().equals(teacher.getId()) && finalTempDate.isEqual(item.getDate())).mapToDouble(item -> item.getCount().doubleValue()).sum();
+
+                int sort = DateUtil.dayOfMonth(new DateTime(tempDate));
+                ReflectUtil.setFieldValue(data, "day" + sort, sum);
+                tempDate = tempDate.plusDays(1);
+            }
+            dataList.add(data);
         }
 
-        return list;
+        // 接下来的查询结果要排除早自习
+        List<Long> finalTimeSlotIdList = timeSlotIdList;
+        timeSlotIdList = timeSlotList.stream().filter(item -> !finalTimeSlotIdList.contains(item.getId())).map(TimeSlotDO::getId).toList();
+        listReqVO.setTimeSlotIdList(timeSlotIdList);
+
+        //2:其他年级
+        List<GradeDO> gradeList = gradeService.getGradeListByParentIds(List.of(0L));
+        for (GradeDO grade : gradeList) {
+            List<Long> subGradeIdList = gradeService.getGradeListByParentIds(List.of(grade.getId())).stream().map(GradeDO::getId).toList();
+            listReqVO.setGradeIdList(subGradeIdList);
+            courseFeeList = courseFeeService.getCourseFeeList(listReqVO);
+
+            teacherIdList = courseFeeList.stream().map(CourseFeeDO::getTeacherId).toList();
+            teacherList = teacherService.getTeacherListByIds(teacherIdList);
+            for (TeacherDO teacher : teacherList) {
+                CourseFeeExportDetailRespVO data = new CourseFeeExportDetailRespVO();
+                data.setGradeName(grade.getName());
+                data.setTeacherName(teacher.getName());
+                data.setOnDuty(0.0);
+                data.setRemark(0.0);
+
+                LocalDate tempDate = startDate;
+                while (!tempDate.isAfter(endDate)) {
+                    LocalDate finalTempDate = tempDate;
+                    double sum = courseFeeList.stream().filter(item -> item.getTeacherId().equals(teacher.getId()) && finalTempDate.isEqual(item.getDate())).mapToDouble(item -> item.getCount().doubleValue()).sum();
+
+                    int sort = DateUtil.dayOfMonth(new DateTime(tempDate));
+                    ReflectUtil.setFieldValue(data, "day" + sort, sum);
+                    tempDate = tempDate.plusDays(1);
+                }
+                dataList.add(data);
+            }
+        }
+
+        return dataList;
     }
 
 

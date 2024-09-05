@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.ToString;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Schema(description = "管理后台 - 课时费查询 Request VO")
 @Data
@@ -18,4 +19,11 @@ public class CourseFeeListReqVO {
 
     @NotNull(message = "查询结束日期不能为空")
     private LocalDate endDate;
+
+    /**
+     * 节次
+     */
+    private List<Long> timeSlotIdList;
+
+    private List<Long> gradeIdList;
 }

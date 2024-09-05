@@ -26,6 +26,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Nullable;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertSet;
@@ -74,6 +75,9 @@ public class CourseFeeServiceImpl implements CourseFeeService {
 
     @Override
     public List<CourseFeeDO> calculateCourseFee(LocalDate date, @Nullable Collection<Long> gradeIdList, @Nullable Long startTimeSlotId, @Nullable Long endTimeSlotId, Long teacherId) {
+        LocalDate startDate = date.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate endDate = date.with(TemporalAdjusters.lastDayOfMonth());
+
         List<CourseFeeDO> courseFeeList = new ArrayList<>();
 
         int week = date.getDayOfWeek().getValue();
@@ -139,6 +143,11 @@ public class CourseFeeServiceImpl implements CourseFeeService {
             Set<Long> teacherIdList = convertSet(teacherSubjectList, TeacherSubjectDO::getTeacherId);
             List<TeacherDO> teacherList = teacherMapper.selectBatchIds(teacherIdList);
             for (TeacherDO teacher : teacherList) {
+                // 查看该教师是否真的上课了
+                if (coursePlanMapper.selectList(null, teacher.getId(), null, null, startDate, null).size() == 0) {
+                    continue;
+                }
+
                 CourseFeeDO courseFee = new CourseFeeDO();
                 courseFee.setCount(morningCourseType.getNum());
                 courseFee.setTeacherId(teacher.getId());

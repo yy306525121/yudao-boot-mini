@@ -33,7 +33,9 @@ public interface GradeMapper extends BaseMapperX<GradeDO> {
     }
 
     default List<GradeDO> selectListByParentId(Collection<Long> parentIds) {
-        return selectList(GradeDO::getParentId, parentIds);
+        return selectList(new LambdaQueryWrapperX<GradeDO>()
+                .in(GradeDO::getParentId, parentIds)
+                .orderByAsc(GradeDO::getSort));
     }
 
     default GradeDO selectByName(String name) {
