@@ -385,7 +385,42 @@ public class TimetableServiceImpl implements TimetableService {
             }
         }
 
-        //3.9 自习课不能安排在上午上午第二节和下午第一节
+        //3.9 每天的第1、2、6节课必须排课
+        int[] mustSort = new int[]{0, 1, 5};
+        gradeLessonMap.forEach((grade, gradeLessonList) -> {
+            int gradeIndex = gradeList.indexOf(grade);
+            for (int week = 0; week < dayPerWeek; week++) {
+                for (int sort : mustSort) {
+                    LinearExprBuilder sumExpr = LinearExpr.newBuilder();
+                    List<SubjectDO> gradeSubjectList = gradeLessonList.stream().map(Lesson::getSubject).distinct().toList();
+                    for (SubjectDO subject : gradeSubjectList) {
+                        int subjectIndex = subjectList.indexOf(subject);
+                        Lesson lesson = gradeLessonList.stream().filter(item -> item.getSubject().getId().equals(subject.getId())).findFirst().orElseThrow();
+                        int teacherIndex = teacherList.indexOf(lesson.getTeacher());
+                        sumExpr.add(x[teacherIndex][gradeIndex][subjectIndex][week][sort]);
+                    }
+                    model.addEquality(sumExpr, 1);
+                }
+            }
+        });
+
+        // gradeLessonMap.forEach((grade, gradeLessonList) -> {
+        //     int gradeIndex = gradeList.indexOf(grade);
+        //     // 该班级的所有科目
+        //     List<SubjectDO> gradeSubjectList = gradeLessonList.stream().map(Lesson::getSubject).distinct().toList();
+        //     for (SubjectDO subject : gradeSubjectList) {
+        //         int subjectIndex = subjectList.indexOf(subject);
+        //         //该班级的老师
+        //         Lesson lesson = gradeLessonList.stream().filter(item -> item.getSubject().getId().equals(subject.getId())).findFirst().orElseThrow();
+        //         int teacherIndex = teacherList.indexOf(lesson.getTeacher());
+        //         for (int week = 0; week < dayPerWeek; week++) {
+        //             for (int sort : mustSort) {
+        //
+        //             }
+        //             model.addBoolOr(new Literal[]{x[teacherIndex][gradeIndex][subjectIndex][week][1], x[teacherIndex][gradeIndex][subjectIndex][week][5]});
+        //         }
+        //     }
+        // });
 
 
         //固定课程
