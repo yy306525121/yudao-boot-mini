@@ -1,4 +1,4 @@
-package cn.iocoder.yudao.module.school.enums.tietable;
+package cn.iocoder.yudao.module.school.enums.timetable;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

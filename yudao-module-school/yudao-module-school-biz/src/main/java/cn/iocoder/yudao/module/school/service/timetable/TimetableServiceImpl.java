@@ -20,6 +20,7 @@ import cn.iocoder.yudao.module.school.dal.mysql.teacher.TeacherMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.timetable.TimetableMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.timetable.TimetableSettingMapper;
 import cn.iocoder.yudao.module.school.enums.course.CourseTypeEnum;
+import cn.iocoder.yudao.module.school.enums.timetable.SubjectEnum;
 import cn.iocoder.yudao.module.school.timetable.domain.Lesson;
 import com.google.ortools.Loader;
 import com.google.ortools.sat.*;
@@ -27,7 +28,6 @@ import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.service.impl.DiffParseFunction;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import lombok.RequiredArgsConstructor;
-import org.checkerframework.common.value.qual.IntVal;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -35,7 +35,6 @@ import java.time.DayOfWeek;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.TIMETABLE_NAME_DUPLICATE;
@@ -393,6 +392,20 @@ public class TimetableServiceImpl implements TimetableService {
             }
         });
         model.minimize(obj);
+
+        //3.8：体育课不能排在上午前两节
+        SubjectDO subject = subjectMapper.selectByName(SubjectEnum.SPORTS.getName());
+        int subjectIndex = subjectList.indexOf(subject);
+        for (int teacherIndex = 0; teacherIndex < teacherSize; teacherIndex++) {
+            for (int gradeIndex = 0; gradeIndex < gradeSize; gradeIndex++) {
+                for (int week = 0; week < dayPerWeek; week++) {
+                    for (int sort = 0; sort < 2; sort++) {
+                        model.addEquality(x[teacherIndex][gradeIndex][subjectIndex][week][sort], 0);
+                    }
+                }
+            }
+        }
+
 
         //固定课程
         // model.addEquality(x[2][0][1][0][0], 1);
