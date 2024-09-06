@@ -137,14 +137,13 @@ public class TimetableServiceImpl implements TimetableService {
         List<Lesson> lessonList = new ArrayList<>();
         Long lessonId = 0L;
         for (TimetableSettingDO timetableSetting : timetableSettingList) {
-            Integer ordinaryCount = timetableSetting.getOrdinaryCount();
-            Integer continuousCount = timetableSetting.getContinuousCount();
+            Integer count = timetableSetting.getCount();
             GradeDO grade = gradeMapper.selectById(timetableSetting.getGradeId());
             TeacherDO teacher = teacherMapper.selectById(timetableSetting.getTeacherId());
             SubjectDO subject = subjectMapper.selectById(timetableSetting.getSubjectId());
             CourseTypeDO courseType = courseTypeMapper.selectById(timetableSetting.getCourseTypeId());
 
-            for (int i = 0; i < ordinaryCount; i++) {
+            for (int i = 0; i < count; i++) {
                 // 普通课时设置
                 Lesson lesson = new Lesson();
                 lesson.setId(lessonId++);
@@ -152,27 +151,7 @@ public class TimetableServiceImpl implements TimetableService {
                 lesson.setTeacher(teacher);
                 lesson.setSubject(subject);
                 lesson.setCourseType(courseType);
-                lesson.setContinuousFlag(false);
                 lessonList.add(lesson);
-            }
-
-            // 连堂课
-            for (int i = 0; i < continuousCount; i++) {
-                String uuid = IdUtil.simpleUUID();
-                for (int j = 0; j < 2; j++) {
-                    // 两节连堂课uuid相同
-                    Lesson lesson = new Lesson();
-                    lesson.setId(lessonId++);
-                    lesson.setGrade(grade);
-                    lesson.setTeacher(teacher);
-                    lesson.setSubject(subject);
-                    lesson.setCourseType(courseType);
-                    lesson.setContinuousFlag(true);
-                    // lesson.setPreferWeeks(timetableSetting.getPreferWeeks());
-                    // lesson.setPreferTimeSlotIds(timetableSetting.getPreferTimeSlotIds());
-
-                    lessonList.add(lesson);
-                }
             }
         }
 
@@ -394,17 +373,19 @@ public class TimetableServiceImpl implements TimetableService {
         model.minimize(obj);
 
         //3.8：体育课不能排在上午前两节
-        SubjectDO subject = subjectMapper.selectByName(SubjectEnum.SPORTS.getName());
-        int subjectIndex = subjectList.indexOf(subject);
+        SubjectDO sportsSubject = subjectMapper.selectByName(SubjectEnum.SPORTS.getName());
+        int sportSubjectIndex = subjectList.indexOf(sportsSubject);
         for (int teacherIndex = 0; teacherIndex < teacherSize; teacherIndex++) {
             for (int gradeIndex = 0; gradeIndex < gradeSize; gradeIndex++) {
                 for (int week = 0; week < dayPerWeek; week++) {
                     for (int sort = 0; sort < 2; sort++) {
-                        model.addEquality(x[teacherIndex][gradeIndex][subjectIndex][week][sort], 0);
+                        model.addEquality(x[teacherIndex][gradeIndex][sportSubjectIndex][week][sort], 0);
                     }
                 }
             }
         }
+
+        //3.9 自习课不能安排在上午上午第二节和下午第一节
 
 
         //固定课程

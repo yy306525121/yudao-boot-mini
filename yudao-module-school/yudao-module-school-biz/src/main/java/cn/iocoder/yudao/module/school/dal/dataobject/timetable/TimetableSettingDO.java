@@ -51,22 +51,7 @@ public class TimetableSettingDO extends BaseDO {
      */
     private Long teacherId;
     /**
-     * 普通课时数/周
+     * 每周课时数
      */
-    private Integer ordinaryCount;
-
-    /**
-     * 连堂课次数/周（一个连堂课表示两节普通课时）
-     */
-    private Integer continuousCount;
-
-    /**
-     * 喜欢上周几的课
-     */
-    @TableField(typeHandler = JsonIntegerSetTypeHandler.class)
-    private Set<Integer> preferWeeks;
-
-    @TableField(typeHandler = JsonLongSetTypeHandler.class)
-    private Set<Long> preferTimeSlotIds;
-
+    private Integer count;
 }

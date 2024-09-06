@@ -34,20 +34,8 @@ public class TimetableSettingSaveReqVO {
     @DiffLogField(name = "教师")
     private Long teacherId;
 
-    @Schema(description = "普通课时数")
-    @NotNull(message = "普通课时数")
-    @DiffLogField(name = "普通课时数")
-    private Integer ordinaryCount;
-
-    @Schema(description = "连堂课次数")
-    @DiffLogField(name = "连堂课次数")
-    private Integer continuousCount;
-
-
-    @Schema(description = "偏好星期")
-    @DiffLogField(name = "偏好星期")
-    private Set<Integer> preferWeeks;
-
-    @Schema(description = "偏好节次")
-    private Set<Long> preferTimeSlotIds;
+    @Schema(description = "课时数")
+    @NotNull(message = "课时数")
+    @DiffLogField(name = "课时数")
+    private Integer count;
 }
