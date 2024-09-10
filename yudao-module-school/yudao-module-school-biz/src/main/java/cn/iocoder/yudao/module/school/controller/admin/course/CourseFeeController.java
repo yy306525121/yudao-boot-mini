@@ -31,10 +31,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -45,9 +42,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.EXPORT;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
@@ -160,7 +155,8 @@ public class CourseFeeController {
 
         LocalDate date = pageReqVO.getDate();
         // 数据
-        List<CourseFeeExportDetailRespVO> data = getCourseFeeDate(date);
+        List<CourseFeeExportDetailRespVO> detailDataList = getCourseFeeDetailDate(date);
+        List<CourseFeeExportCountRespVO> countDataList = getCourseFeeCountData(detailDataList);
 
         // 创建一个工作簿
         Workbook workbook = new XSSFWorkbook();
@@ -180,18 +176,47 @@ public class CourseFeeController {
             }
         }
 
+        sheet1RowNum += 1;
+        List<CourseFeeExportDetailRespVO> sheet1List = detailDataList;
 
+        for (CourseFeeExportCountRespVO item : countDataList) {
+
+            Row row = sheet1.createRow(sheet1RowNum++);
+            int colNum = 0;
+            for (Field field : sheet1FieldList) {
+                if (!field.isAnnotationPresent(Excel.class)) {
+                    continue;
+                }
+                Excel attr = field.getAnnotation(Excel.class);
+                Cell cell = row.createCell(colNum++);
+
+
+                List<String> sumItemList = new ArrayList<>();
+                for (Integer rowNum : item.getSummaryIndexList()) {
+                    String sumItem = "'" + date.getMonth().getValue() + "月课时详情'!C" + (rowNum + 2);
+                    sumItemList.add(sumItem);
+                }
+
+
+                if (attr.isSummary()) {
+                    cell.setCellFormula(StrUtil.format("SUM({})", StrUtil.join(",", sumItemList)));
+                } else if (field.getType().getName().equals(String.class.getName())) {
+                    String value = (String)ReflectUtil.getFieldValue(item, field);
+                    cell.setCellValue(value);
+                }
+            }
+        }
 
 
         // 创建一个工作表
         Sheet sheet2 = workbook.createSheet(date.getMonth().getValue() + "月课时详情");
-
 
         int sheet2RowNum = 0;
         // 设置头
         Field[] sheet2FieldList = ClassUtil.getDeclaredFields(CourseFeeExportDetailRespVO.class);
         int sheet2HeadIndex = 0;
         Row sheet2HeadRow = sheet2.createRow(sheet2RowNum);
+        sheet2HeadRow.setHeightInPoints(30);
         for (Field field : sheet2FieldList) {
             if (field.isAnnotationPresent(Excel.class)) {
                 Excel attr = field.getAnnotation(Excel.class);
@@ -210,6 +235,12 @@ public class CourseFeeController {
 
                 if (StrUtil.isNotEmpty(name)) {
                     Cell cell = sheet2HeadRow.createCell(sheet2HeadIndex++);
+
+                    CellStyle titleStyle = workbook.createCellStyle();
+                    titleStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+                    titleStyle.setFillForegroundColor(IndexedColors.PINK1.getIndex());
+                    cell.setCellStyle(titleStyle);
+
                     cell.setCellValue(name);
                 }
             }
@@ -217,7 +248,7 @@ public class CourseFeeController {
 
         sheet2RowNum += 1;
         // 数据行
-        for (CourseFeeExportDetailRespVO respVo : data) {
+        for (CourseFeeExportDetailRespVO dateRow : detailDataList) {
             Row row = sheet2.createRow(sheet2RowNum++);
             int colNum = 0;
 
@@ -226,16 +257,22 @@ public class CourseFeeController {
                     continue;
                 }
                 Excel attr = field.getAnnotation(Excel.class);
+                Cell cell = row.createCell(colNum++);
+
+                if ("早自习".equals(dateRow.getGradeName())) {
+                    Font font = workbook.createFont();
+                    font.setColor(IndexedColors.RED.getIndex());
+                    CellStyle morningFontStyle = workbook.createCellStyle();
+                    morningFontStyle.setFont(font);
+                    cell.setCellStyle(morningFontStyle);
+                }
                 if (attr.isSummary()) {
-                    Cell cell = row.createCell(colNum++);
                     cell.setCellFormula(StrUtil.format("SUM(D{}:AJ{})", sheet2RowNum, sheet2RowNum));
                 } else if (field.getType().getName().equals(String.class.getName())) {
-                    String value = (String) ReflectUtil.getFieldValue(respVo, field);
-                    Cell cell = row.createCell(colNum++);
+                    String value = (String) ReflectUtil.getFieldValue(dateRow, field);
                     cell.setCellValue(value);
                 } else if (field.getType().getName().equals(Double.class.getName())) {
-                    Double value = (Double) ReflectUtil.getFieldValue(respVo, field);
-                    Cell cell = row.createCell(colNum++);
+                    Double value = (Double) ReflectUtil.getFieldValue(dateRow, field);
                     cell.setCellValue(value);
                 }
             }
@@ -247,7 +284,38 @@ public class CourseFeeController {
         }
     }
 
-    private List<CourseFeeExportDetailRespVO> getCourseFeeDate(LocalDate date) {
+    private List<CourseFeeExportCountRespVO> getCourseFeeCountData(List<CourseFeeExportDetailRespVO> detailDataList) {
+        List<CourseFeeExportCountRespVO> dataList = new ArrayList<>();
+
+        List<CourseFeeExportDetailRespVO> morningDetailDataList = detailDataList.stream().filter(item -> item.getGradeName().equals("早自习")).toList();
+        List<CourseFeeExportDetailRespVO> hasUsedList = new ArrayList<>();
+
+        for (CourseFeeExportDetailRespVO detailData : detailDataList) {
+            if (detailData.getGradeName().equals("早自习")) {
+                continue;
+            }
+
+            List<Integer> summaryIndexList = new ArrayList<>();
+            summaryIndexList.add(detailDataList.indexOf(detailData));
+
+            for (CourseFeeExportDetailRespVO morningDetail : morningDetailDataList) {
+                if (morningDetail.getTeacherName().equals(detailData.getTeacherName()) && !hasUsedList.contains(morningDetail)) {
+                    summaryIndexList.add(detailDataList.indexOf(morningDetail));
+                    hasUsedList.add(morningDetail);
+                }
+            }
+
+            CourseFeeExportCountRespVO data = new CourseFeeExportCountRespVO();
+            data.setGradeName(detailData.getGradeName());
+            data.setTeacherName(detailData.getTeacherName());
+            data.setSummaryIndexList(summaryIndexList);
+            dataList.add(data);
+        }
+
+        return dataList;
+    }
+
+    private List<CourseFeeExportDetailRespVO> getCourseFeeDetailDate(LocalDate date) {
         LocalDate startDate = date.with(TemporalAdjusters.firstDayOfMonth());
         LocalDate endDate = date.with(TemporalAdjusters.lastDayOfMonth());
 
@@ -284,7 +352,7 @@ public class CourseFeeController {
             dataList.add(data);
         }
 
-        // 接下来的查询结果要排除早自习
+        // 2.接下来的查询结果要排除早自习
         List<Long> finalTimeSlotIdList = timeSlotIdList;
         timeSlotIdList = timeSlotList.stream().filter(item -> !finalTimeSlotIdList.contains(item.getId())).map(TimeSlotDO::getId).toList();
         listReqVO.setTimeSlotIdList(timeSlotIdList);
