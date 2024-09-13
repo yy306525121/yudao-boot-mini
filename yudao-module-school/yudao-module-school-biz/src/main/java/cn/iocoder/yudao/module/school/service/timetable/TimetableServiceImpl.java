@@ -1,6 +1,5 @@
 package cn.iocoder.yudao.module.school.service.timetable;
 
-import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.TimetablePageReqVO;
@@ -20,11 +19,13 @@ import cn.iocoder.yudao.module.school.dal.mysql.teacher.TeacherMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.timetable.TimetableMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.timetable.TimetableSettingMapper;
 import cn.iocoder.yudao.module.school.enums.course.CourseTypeEnum;
-import cn.iocoder.yudao.module.school.enums.timetable.SubjectEnum;
 import cn.iocoder.yudao.module.school.framework.timetable.core.utils.TimetableConstraintUtils;
 import cn.iocoder.yudao.module.school.timetable.domain.Lesson;
 import com.google.ortools.Loader;
-import com.google.ortools.sat.*;
+import com.google.ortools.sat.CpModel;
+import com.google.ortools.sat.CpSolver;
+import com.google.ortools.sat.CpSolverStatus;
+import com.google.ortools.sat.Literal;
 import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.service.impl.DiffParseFunction;
 import com.mzt.logapi.starter.annotation.LogRecord;
@@ -33,9 +34,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.DayOfWeek;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.TIMETABLE_NAME_DUPLICATE;

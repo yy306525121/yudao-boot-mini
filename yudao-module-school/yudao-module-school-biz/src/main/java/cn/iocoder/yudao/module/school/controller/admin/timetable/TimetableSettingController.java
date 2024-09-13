@@ -27,14 +27,20 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.EXPORT;
+import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.IMPORT;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Tag(name = "管理后台 - 排课计划设置")
@@ -49,6 +55,21 @@ public class TimetableSettingController {
     private final TeacherService teacherService;
     private final SubjectService subjectService;
     private final CourseTypeService courseTypeService;
+
+    @PostMapping("/import")
+    @Operation(summary = "导入课程计划设置 Excel")
+    @PreAuthorize("@ss.hasPermission('school:timetable-setting:import')")
+    @ApiAccessLog(operateType = IMPORT)
+    public CommonResult<Boolean> importCoursePlanExcel(@RequestParam("file") MultipartFile file) throws IOException {
+        InputStream inputStream = file.getInputStream();
+        Workbook workbook = WorkbookFactory.create(inputStream);
+
+        // 只获取第一个sheet
+        Sheet sheet = workbook.getSheetAt(0);
+
+
+        return success(true);
+    }
 
     @PostMapping("/create")
     @Operation(summary = "创建排课计划设置")
