@@ -21,6 +21,7 @@ import cn.iocoder.yudao.module.school.dal.mysql.timetable.TimetableMapper;
 import cn.iocoder.yudao.module.school.dal.mysql.timetable.TimetableSettingMapper;
 import cn.iocoder.yudao.module.school.enums.course.CourseTypeEnum;
 import cn.iocoder.yudao.module.school.enums.timetable.SubjectEnum;
+import cn.iocoder.yudao.module.school.framework.timetable.core.utils.TimetableConstraintUtils;
 import cn.iocoder.yudao.module.school.timetable.domain.Lesson;
 import com.google.ortools.Loader;
 import com.google.ortools.sat.*;
@@ -173,10 +174,6 @@ public class TimetableServiceImpl implements TimetableService {
         List<SubjectDO> subjectList = lessonList.stream().map(Lesson::getSubject).distinct().toList();
         int subjectSize = subjectList.size();
 
-        SubjectDO chineseSubject = subjectList.stream().filter(item -> item.getName().equals("语文")).findFirst().orElseThrow();
-        SubjectDO englishSubject = subjectList.stream().filter(item -> item.getName().equals("英语")).findFirst().orElseThrow();
-
-
         //1：建模
         CpModel model = new CpModel();
 
@@ -197,230 +194,39 @@ public class TimetableServiceImpl implements TimetableService {
             }
         }
 
-        //2.2：辅助变量 1、3、5语文课尽量排在最前名，2、4、6英语尽量排在最前面
-        Literal[][] topLessonPreferred = new Literal[gradeSize][dayPerWeek];
-        for (int gradeIndex = 0; gradeIndex < gradeSize; gradeIndex++) {
-            for (int week = 0; week < dayPerWeek; week++) {
-                topLessonPreferred[gradeIndex][week] = model.newBoolVar("top_lesson_preferred[" + gradeList.get(gradeIndex).getName() + "][" + week + "]");
-            }
-        }
-
 
         //3：约束条件
         //3.1：每个班级每个科目只能是指定的老师
-        Map<GradeDO, List<Lesson>> gradeLessonMap = lessonList.stream().collect(Collectors.groupingBy(Lesson::getGrade));
-        for (int gradeIndex = 0; gradeIndex < gradeList.size(); gradeIndex++) {
-            for (int subjectIndex = 0; subjectIndex < subjectList.size(); subjectIndex++) {
-                // 获取该班级该科目的任课老师
-                int finalG = gradeIndex;
-                int finalS = subjectIndex;
-                Optional<Lesson> opt = lessonList.stream()
-                        .filter(item -> item.getGrade().getId().equals(gradeList.get(finalG).getId()) &&
-                                item.getSubject().getId().equals(subjectList.get(finalS).getId()))
-                        .findFirst();
-                if (opt.isEmpty()) {
-                    continue;
-                }
-                Lesson lesson = opt.get();
-                for (int week = 0; week < dayPerWeek; week++) {
-                    for (int sort = 0; sort < timeSlotPerDay; sort++) {
-                        for (int teacherIndex = 0; teacherIndex < teacherList.size(); teacherIndex++) {
-                            if (!teacherList.get(teacherIndex).getId().equals(lesson.getTeacher().getId())) {
-                                // 如果不是指定的教师，值必须为0
-                                model.addEquality(x[teacherIndex][gradeIndex][subjectIndex][week][sort], 0);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+
+        TimetableConstraintUtils.gradeTeacherUniqueConstraint(model, x, lessonList, dayPerWeek, timeSlotPerDay);
 
         //3.2：每个节次同时只能有一节课
-        for (int gradeIndex = 0; gradeIndex < gradeList.size(); gradeIndex++) {
-            for (int week = 0; week < dayPerWeek; week++) {
-                for (int sort = 0; sort < timeSlotPerDay; sort++) {
-                    List<Literal> possibleSubjectList = new ArrayList<>();
-                    for (int s = 0; s < subjectList.size(); s++) {
-                        for (int t = 0; t < teacherList.size(); t++) {
-                            possibleSubjectList.add(x[t][gradeIndex][s][week][sort]);
-                        }
-                    }
-                    model.addAtMostOne(possibleSubjectList);
-                }
-            }
-        }
+        TimetableConstraintUtils.timeSlotUniqueConstraint(model, x, lessonList, dayPerWeek, timeSlotPerDay);
 
         //3.3：每个教师同时最多只能上一节课
-        for (int teacherIndex = 0; teacherIndex < teacherList.size(); teacherIndex++) {
-            for (int week = 0; week < dayPerWeek; week++) {
-                for (int sort = 0; sort < timeSlotPerDay; sort++) {
-                    List<Literal> possibleTeacherList = new ArrayList<>();
-                    for (int g = 0; g < gradeList.size(); g++) {
-                        for (int s = 0; s < subjectList.size(); s++) {
-                            possibleTeacherList.add(x[teacherIndex][g][s][week][sort]);
-                        }
-                    }
-                    model.addAtMostOne(possibleTeacherList);
-                }
-            }
-        }
+        TimetableConstraintUtils.teacherTimeConstraint(model, x, lessonList, dayPerWeek, timeSlotPerDay);
 
         //3.4：班级科目天的最大课程次数（每周上6天课，如果课程数小于6就每天最多一节，如果大于6小于12就每天最多2节，如果大于12就每天最多3节，以此类推）
-        for (int gradeIndex = 0; gradeIndex < gradeSize; gradeIndex++) {
-            for (int subjectIndex = 0; subjectIndex < subjectSize; subjectIndex++) {
-                // 获取当前班级的该科目的课程数
-                GradeDO grade = gradeList.get(gradeIndex);
-                SubjectDO subject = subjectList.get(subjectIndex);
-                long subjectCount = lessonList.stream().filter(item -> item.getGrade().getId().equals(grade.getId()) && item.getSubject().getId().equals(subject.getId())).count();
-                long minCountPerDay = subjectCount / dayPerWeek;
-                long maxCountPerDay;
-                if (subjectCount % dayPerWeek == 0) {
-                    maxCountPerDay = minCountPerDay;
-                } else {
-                    maxCountPerDay = minCountPerDay + 1;
-                }
-                for (int w = 0; w < dayPerWeek; w++) {
-                    LinearExprBuilder countPerDay = LinearExpr.newBuilder();
-                    for (int t = 0; t < teacherList.size(); t++) {
-                        for (int y = 0; y < timeSlotPerDay; y++) {
-                            countPerDay.add(x[t][gradeIndex][subjectIndex][w][y]);
-                        }
-                    }
-                    model.addLinearConstraint(countPerDay, minCountPerDay, maxCountPerDay);
-                }
-            }
-        }
-        //3.5：每个班级的每个科目的课时数固定
-        gradeLessonMap.forEach((grade, gradeLessonList) -> {
-            // 该班级的所有科目
-            List<SubjectDO> gradeSubjectList = gradeLessonList.stream().map(Lesson::getSubject).distinct().toList();
+        TimetableConstraintUtils.gradeSubjectMaxPerDayConstraint(model, x, lessonList, dayPerWeek, timeSlotPerDay);
 
-            for (SubjectDO subject : gradeSubjectList) {
-                LinearExpr sumExpr = LinearExpr.sum(
-                        teacherList.stream()
-                                .flatMap(teacher -> IntStream.range(0, dayPerWeek).boxed()
-                                        .flatMap(day -> Arrays.stream(x[teacherList.indexOf(teacher)][gradeList.indexOf(grade)][subjectList.indexOf(subject)][day], 0, timeSlotPerDay)))
-                                .toArray(Literal[]::new)
-                );
-                // 获取对应课程的数量
-                long subjectCount = gradeLessonList.stream().filter(item -> item.getSubject().getId().equals(subject.getId())).count();
-                model.addEquality(sumExpr, subjectCount);
-            }
-        });
+        //3.5：每个班级的每个科目的课时数固定
+        TimetableConstraintUtils.gradeSubjectMaxPerWeekConstraint(model, x, lessonList, dayPerWeek, timeSlotPerDay);
 
 
         // 3.6 如果当天存在多节相同的课，那么课程必须连续
-        gradeLessonMap.forEach((grade, gradeLessonList) -> {
-            // 该班级的所有科目
-            List<SubjectDO> gradeSubjectList = gradeLessonList.stream().map(Lesson::getSubject).distinct().toList();
-
-            for (SubjectDO subject : gradeSubjectList) {
-                //该班级的老师
-                Lesson lesson = gradeLessonList.stream().filter(item -> item.getSubject().getId().equals(subject.getId())).findFirst().orElseThrow();
-                int teacherIndex = teacherList.indexOf(lesson.getTeacher());
-                int gradeIndex = gradeList.indexOf(grade);
-                int subjectIndex = subjectList.indexOf(subject);
-
-                for (int week = 0; week < dayPerWeek; week++) {
-                    for (int sort1 = 0; sort1 < timeSlotPerDay; sort1++) {
-                        for (int sort2 = sort1 + 1; sort2 < timeSlotPerDay; sort2++) {
-                            // 连堂课不能安排在第5节和第6节
-                            if ((sort1 == 4 && sort2 == 5) || (sort1 == 5 && sort2 == 4)) {
-                                model.addBoolOr(new Literal[]{x[teacherIndex][gradeIndex][subjectIndex][week][sort1].not(),
-                                        x[teacherIndex][gradeIndex][subjectIndex][week][sort2].not(),
-                                });
-                            }
-                            if (Math.abs(sort1 - sort2) != 1) {
-                                model.addBoolOr(new Literal[]{
-                                            x[teacherIndex][gradeIndex][subjectIndex][week][sort1].not(),
-                                            x[teacherIndex][gradeIndex][subjectIndex][week][sort2].not(),
-                                        });
-                            }
-                        }
-                    }
-                }
-            }
-        });
+        TimetableConstraintUtils.continuousConstraint(model, x, lessonList, dayPerWeek, timeSlotPerDay);
 
         //3.7：1、3、5语文课尽量往前排，2、4、6英语课尽量往前排
-        LinearExprBuilder obj = LinearExpr.newBuilder();
-        gradeLessonMap.forEach((grade, gradeLessonList) -> {
-            int gradeIndex = gradeList.indexOf(grade);
-            // 该班级的所有科目
-            List<SubjectDO> gradeSubjectList = gradeLessonList.stream().map(Lesson::getSubject).distinct().toList();
-            for (SubjectDO subject : gradeSubjectList) {
-                int subjectIndex = subjectList.indexOf(subject);
-
-                //该班级的老师
-                Lesson lesson = gradeLessonList.stream().filter(item -> item.getSubject().getId().equals(subject.getId())).findFirst().orElseThrow();
-                int teacherIndex = teacherList.indexOf(lesson.getTeacher());
-                for (int week = 0; week < dayPerWeek; week++) {
-                    if (week % 2 == 0 && subject.getId().equals(chineseSubject.getId())) {
-                        // 0、2、4（对应周1、3、5)
-                        for (int sort = 0; sort < timeSlotPerDay; sort++) {
-                            obj.addTerm(x[teacherIndex][gradeIndex][subjectIndex][week][sort], sort);
-                        }
-                        model.minimize(obj);
-                    } else if (week % 2 == 1 && subject.getId().equals(englishSubject.getId())) {
-                        // 1、3、5（对应周2、4、6)
-                        for (int sort = 0; sort < timeSlotPerDay; sort++) {
-                            obj.addTerm(x[teacherIndex][gradeIndex][subjectIndex][week][sort], sort);
-                        }
-                    }
-                }
-            }
-        });
-        model.minimize(obj);
+        TimetableConstraintUtils.englishAndChinesePreferenceConstraint(model, x, lessonList, dayPerWeek, timeSlotPerDay);
 
         //3.8：体育课不能排在上午前两节
-        SubjectDO sportsSubject = subjectMapper.selectByName(SubjectEnum.SPORTS.getName());
-        int sportSubjectIndex = subjectList.indexOf(sportsSubject);
-        for (int teacherIndex = 0; teacherIndex < teacherSize; teacherIndex++) {
-            for (int gradeIndex = 0; gradeIndex < gradeSize; gradeIndex++) {
-                for (int week = 0; week < dayPerWeek; week++) {
-                    for (int sort = 0; sort < 2; sort++) {
-                        model.addEquality(x[teacherIndex][gradeIndex][sportSubjectIndex][week][sort], 0);
-                    }
-                }
-            }
-        }
+        TimetableConstraintUtils.sportsTimeSlotLimitConstraint(model, x, lessonList, dayPerWeek);
 
-        //3.9 每天的第1、2、6节课必须排课
-        int[] mustSort = new int[]{0, 1, 5};
-        gradeLessonMap.forEach((grade, gradeLessonList) -> {
-            int gradeIndex = gradeList.indexOf(grade);
-            for (int week = 0; week < dayPerWeek; week++) {
-                for (int sort : mustSort) {
-                    LinearExprBuilder sumExpr = LinearExpr.newBuilder();
-                    List<SubjectDO> gradeSubjectList = gradeLessonList.stream().map(Lesson::getSubject).distinct().toList();
-                    for (SubjectDO subject : gradeSubjectList) {
-                        int subjectIndex = subjectList.indexOf(subject);
-                        Lesson lesson = gradeLessonList.stream().filter(item -> item.getSubject().getId().equals(subject.getId())).findFirst().orElseThrow();
-                        int teacherIndex = teacherList.indexOf(lesson.getTeacher());
-                        sumExpr.add(x[teacherIndex][gradeIndex][subjectIndex][week][sort]);
-                    }
-                    model.addEquality(sumExpr, 1);
-                }
-            }
-        });
+        //3.9：体育课尽量排在周4，5，6
+        TimetableConstraintUtils.sportsWeekLimitConstraint(model, x, lessonList, dayPerWeek, timeSlotPerDay);
 
-        // gradeLessonMap.forEach((grade, gradeLessonList) -> {
-        //     int gradeIndex = gradeList.indexOf(grade);
-        //     // 该班级的所有科目
-        //     List<SubjectDO> gradeSubjectList = gradeLessonList.stream().map(Lesson::getSubject).distinct().toList();
-        //     for (SubjectDO subject : gradeSubjectList) {
-        //         int subjectIndex = subjectList.indexOf(subject);
-        //         //该班级的老师
-        //         Lesson lesson = gradeLessonList.stream().filter(item -> item.getSubject().getId().equals(subject.getId())).findFirst().orElseThrow();
-        //         int teacherIndex = teacherList.indexOf(lesson.getTeacher());
-        //         for (int week = 0; week < dayPerWeek; week++) {
-        //             for (int sort : mustSort) {
-        //
-        //             }
-        //             model.addBoolOr(new Literal[]{x[teacherIndex][gradeIndex][subjectIndex][week][1], x[teacherIndex][gradeIndex][subjectIndex][week][5]});
-        //         }
-        //     }
-        // });
+        //3.10 每天的第1、2、6节课必须排课
+        TimetableConstraintUtils.timeSlotMustConstraint(model, x, lessonList, dayPerWeek);
 
 
         //固定课程
