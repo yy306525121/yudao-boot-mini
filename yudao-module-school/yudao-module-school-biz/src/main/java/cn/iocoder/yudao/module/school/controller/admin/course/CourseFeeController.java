@@ -160,64 +160,26 @@ public class CourseFeeController {
 
         // 创建一个工作簿
         Workbook workbook = new XSSFWorkbook();
-        Sheet sheet1 = workbook.createSheet(date.getMonth().getValue() + "月课时费统计");
-        int sheet1RowNum = 0;
-        Field[] sheet1FieldList = ClassUtil.getDeclaredFields(CourseFeeExportCountRespVO.class);
-        int sheet1HeadIndex = 0;
-        Row sheet1HeadRow = sheet1.createRow(sheet1RowNum);
-        for (Field field : sheet1FieldList) {
-            if (field.isAnnotationPresent(Excel.class)) {
-                Excel attr = field.getAnnotation(Excel.class);
-                String name = attr.name();
-                if (StrUtil.isNotEmpty(name)) {
-                    Cell cell = sheet1HeadRow.createCell(sheet1HeadIndex++);
-                    cell.setCellValue(name);
-                }
-            }
+        generateSheet1(date, countDataList, workbook);
+        generateSheet2(date, detailDataList, workbook);
+
+        // 将工作簿写入响应输出流
+        try (OutputStream outputStream = response.getOutputStream()) {
+            workbook.write(outputStream);
         }
+    }
 
-        sheet1RowNum += 1;
-        List<CourseFeeExportDetailRespVO> sheet1List = detailDataList;
-
-        for (CourseFeeExportCountRespVO item : countDataList) {
-
-            Row row = sheet1.createRow(sheet1RowNum++);
-            int colNum = 0;
-            for (Field field : sheet1FieldList) {
-                if (!field.isAnnotationPresent(Excel.class)) {
-                    continue;
-                }
-                Excel attr = field.getAnnotation(Excel.class);
-                Cell cell = row.createCell(colNum++);
-
-
-                List<String> sumItemList = new ArrayList<>();
-                for (Integer rowNum : item.getSummaryIndexList()) {
-                    String sumItem = "'" + date.getMonth().getValue() + "月课时详情'!C" + (rowNum + 2);
-                    sumItemList.add(sumItem);
-                }
-
-
-                if (attr.isSummary()) {
-                    cell.setCellFormula(StrUtil.format("SUM({})", StrUtil.join(",", sumItemList)));
-                } else if (field.getType().getName().equals(String.class.getName())) {
-                    String value = (String)ReflectUtil.getFieldValue(item, field);
-                    cell.setCellValue(value);
-                }
-            }
-        }
-
-
+    private void generateSheet2(LocalDate date, List<CourseFeeExportDetailRespVO> detailDataList, Workbook workbook) {
         // 创建一个工作表
-        Sheet sheet2 = workbook.createSheet(date.getMonth().getValue() + "月课时详情");
+        Sheet sheet = workbook.createSheet(date.getMonth().getValue() + "月课时详情");
 
-        int sheet2RowNum = 0;
+        int rowIndex = 0;
         // 设置头
-        Field[] sheet2FieldList = ClassUtil.getDeclaredFields(CourseFeeExportDetailRespVO.class);
-        int sheet2HeadIndex = 0;
-        Row sheet2HeadRow = sheet2.createRow(sheet2RowNum);
-        sheet2HeadRow.setHeightInPoints(30);
-        for (Field field : sheet2FieldList) {
+        Field[] fieldList = ClassUtil.getDeclaredFields(CourseFeeExportDetailRespVO.class);
+        int headColIndex = 0;
+        Row headRow = sheet.createRow(rowIndex);
+        headRow.setHeightInPoints(30);
+        for (Field field : fieldList) {
             if (field.isAnnotationPresent(Excel.class)) {
                 Excel attr = field.getAnnotation(Excel.class);
 
@@ -234,7 +196,7 @@ public class CourseFeeController {
                 }
 
                 if (StrUtil.isNotEmpty(name)) {
-                    Cell cell = sheet2HeadRow.createCell(sheet2HeadIndex++);
+                    Cell cell = headRow.createCell(headColIndex++);
 
                     CellStyle titleStyle = workbook.createCellStyle();
                     titleStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -246,13 +208,13 @@ public class CourseFeeController {
             }
         }
 
-        sheet2RowNum += 1;
+        rowIndex += 1;
         // 数据行
         for (CourseFeeExportDetailRespVO dateRow : detailDataList) {
-            Row row = sheet2.createRow(sheet2RowNum++);
+            Row row = sheet.createRow(rowIndex++);
             int colNum = 0;
 
-            for (Field field : sheet2FieldList) {
+            for (Field field : fieldList) {
                 if (!field.isAnnotationPresent(Excel.class)) {
                     continue;
                 }
@@ -267,7 +229,7 @@ public class CourseFeeController {
                     cell.setCellStyle(morningFontStyle);
                 }
                 if (attr.isSummary()) {
-                    cell.setCellFormula(StrUtil.format("SUM(D{}:AJ{})", sheet2RowNum, sheet2RowNum));
+                    cell.setCellFormula(StrUtil.format("SUM(D{}:AJ{})", rowIndex, rowIndex));
                 } else if (field.getType().getName().equals(String.class.getName())) {
                     String value = (String) ReflectUtil.getFieldValue(dateRow, field);
                     cell.setCellValue(value);
@@ -277,10 +239,53 @@ public class CourseFeeController {
                 }
             }
         }
+    }
 
-        // 将工作簿写入响应输出流
-        try (OutputStream outputStream = response.getOutputStream()) {
-            workbook.write(outputStream);
+    private void generateSheet1(LocalDate date, List<CourseFeeExportCountRespVO> countDataList, Workbook workbook) {
+        Sheet sheet = workbook.createSheet(date.getMonth().getValue() + "月课时费统计");
+        int rowIndex = 0;
+        Field[] fieldList = ClassUtil.getDeclaredFields(CourseFeeExportCountRespVO.class);
+        int headColIndex = 0;
+        Row headRow = sheet.createRow(rowIndex);
+        for (Field field : fieldList) {
+            if (field.isAnnotationPresent(Excel.class)) {
+                Excel attr = field.getAnnotation(Excel.class);
+                String name = attr.name();
+                if (StrUtil.isNotEmpty(name)) {
+                    Cell cell = headRow.createCell(headColIndex++);
+                    cell.setCellValue(name);
+                }
+            }
+        }
+
+        rowIndex += 1;
+
+        for (CourseFeeExportCountRespVO item : countDataList) {
+
+            Row row = sheet.createRow(rowIndex++);
+            int colNum = 0;
+            for (Field field : fieldList) {
+                if (!field.isAnnotationPresent(Excel.class)) {
+                    continue;
+                }
+                Excel attr = field.getAnnotation(Excel.class);
+                Cell cell = row.createCell(colNum++);
+
+
+                List<String> sumItemList = new ArrayList<>();
+                for (Integer summaryIndex : item.getSummaryIndexList()) {
+                    String sumItem = "'" + date.getMonth().getValue() + "月课时详情'!C" + (summaryIndex + 2);
+                    sumItemList.add(sumItem);
+                }
+
+
+                if (attr.isSummary()) {
+                    cell.setCellFormula(StrUtil.format("SUM({})", StrUtil.join(",", sumItemList)));
+                } else if (field.getType().getName().equals(String.class.getName())) {
+                    String value = (String)ReflectUtil.getFieldValue(item, field);
+                    cell.setCellValue(value);
+                }
+            }
         }
     }
 
