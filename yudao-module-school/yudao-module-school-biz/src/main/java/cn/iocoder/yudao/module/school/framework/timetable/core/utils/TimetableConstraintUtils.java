@@ -5,10 +5,7 @@ import cn.iocoder.yudao.module.school.dal.dataobject.subject.SubjectDO;
 import cn.iocoder.yudao.module.school.dal.dataobject.teacher.TeacherDO;
 import cn.iocoder.yudao.module.school.enums.timetable.SubjectEnum;
 import cn.iocoder.yudao.module.school.timetable.domain.Lesson;
-import com.google.ortools.sat.CpModel;
-import com.google.ortools.sat.LinearExpr;
-import com.google.ortools.sat.LinearExprBuilder;
-import com.google.ortools.sat.Literal;
+import com.google.ortools.sat.*;
 import lombok.experimental.UtilityClass;
 
 import javax.security.auth.Subject;
@@ -305,9 +302,8 @@ public class TimetableConstraintUtils {
      * @param model          模型
      * @param x              变量
      * @param lessonList     课程列表
-     * @param dayPerWeek     每周上几天课
      */
-    public void sportsWeekLimitConstraint(CpModel model, Literal[][][][][] x, List<Lesson> lessonList, int dayPerWeek, int timeSlotPerDay) {
+    public void sportsWeekLimitConstraint(CpModel model, Literal[][][][][] x, List<Lesson> lessonList, int timeSlotPerDay) {
         List<GradeDO> gradeList = lessonList.stream().map(Lesson::getGrade).distinct().toList();
         List<TeacherDO> teacherList = lessonList.stream().map(Lesson::getTeacher).distinct().toList();
         List<SubjectDO> subjectList = lessonList.stream().map(Lesson::getSubject).distinct().toList();
@@ -361,6 +357,27 @@ public class TimetableConstraintUtils {
                 }
             }
         });
+    }
+
+    /**
+     * 教师的课程尽量集中
+     * @param model          模型
+     * @param x              变量
+     * @param lessonList     课程列表
+     * @param dayPerWeek     每周上几天课
+     */
+    public void courseFocusConstraint(CpModel model, Literal[][][][][] x, List<Lesson> lessonList, int dayPerWeek, int timeSlotPerDay) {
+        List<GradeDO> gradeList = lessonList.stream().map(Lesson::getGrade).distinct().toList();
+        List<TeacherDO> teacherList = lessonList.stream().map(Lesson::getTeacher).distinct().toList();
+        List<SubjectDO> subjectList = lessonList.stream().map(Lesson::getSubject).distinct().toList();
+
+        for (TeacherDO teacher : teacherList) {
+            int teacherIndex = teacherList.indexOf(teacher);
+            for (int week = 0; week < dayPerWeek; week++) {
+
+            }
+
+        }
     }
 
 }

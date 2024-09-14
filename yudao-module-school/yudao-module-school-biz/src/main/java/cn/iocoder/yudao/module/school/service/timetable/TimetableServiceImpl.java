@@ -223,7 +223,7 @@ public class TimetableServiceImpl implements TimetableService {
         TimetableConstraintUtils.sportsTimeSlotLimitConstraint(model, x, lessonList, dayPerWeek);
 
         //3.9：体育课尽量排在周4，5，6
-        TimetableConstraintUtils.sportsWeekLimitConstraint(model, x, lessonList, dayPerWeek, timeSlotPerDay);
+        TimetableConstraintUtils.sportsWeekLimitConstraint(model, x, lessonList, timeSlotPerDay);
 
         //3.10 每天的第1、2、6节课必须排课
         TimetableConstraintUtils.timeSlotMustConstraint(model, x, lessonList, dayPerWeek);
