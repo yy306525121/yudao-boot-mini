@@ -6,6 +6,8 @@ import cn.iocoder.yudao.module.school.controller.admin.timetable.vo.setting.Time
 import cn.iocoder.yudao.module.school.dal.dataobject.timetable.TimetableSettingDO;
 import jakarta.validation.Valid;
 
+import java.util.List;
+
 /**
  * 排课计划设置 Service 接口
  *
@@ -20,6 +22,8 @@ public interface TimetableSettingService {
      * @return 编号
      */
     Long createTimetableSetting(@Valid TimetableSettingSaveReqVO createReqVO);
+
+    void createTimetableSettingBatch(List<TimetableSettingDO> list);
 
     /**
      * 更新排课计划设置

@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.List;
+
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.school.enums.ErrorCodeConstants.*;
 import static cn.iocoder.yudao.module.school.enums.LogRecordConstants.*;
@@ -51,6 +53,11 @@ public class TimetableSettingServiceImpl implements TimetableSettingService {
         LogRecordContext.putVariable("timetableSetting", timetableSetting);
         // 返回
         return timetableSetting.getId();
+    }
+
+    @Override
+    public void createTimetableSettingBatch(List<TimetableSettingDO> list) {
+        timetableSettingMapper.insertBatch(list);
     }
 
     @Override
