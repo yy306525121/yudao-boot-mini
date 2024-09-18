@@ -68,14 +68,14 @@ public class TimetableController {
 
     @PostMapping("/create")
     @Operation(summary = "创建排课")
-    @PreAuthorize("@ss.hasPermission('solver:timetable:create')")
+    @PreAuthorize("@ss.hasPermission('school:timetable:create')")
     public CommonResult<Long> createTimetable(@Valid @RequestBody TimetableSaveReqVO createReqVO) {
         return success(timetableService.createTimetable(createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新排课")
-    @PreAuthorize("@ss.hasPermission('solver:timetable:update')")
+    @PreAuthorize("@ss.hasPermission('school:timetable:update')")
     public CommonResult<Boolean> updateTimetable(@Valid @RequestBody TimetableSaveReqVO updateReqVO) {
         timetableService.updateTimetable(updateReqVO);
         return success(true);
@@ -84,7 +84,7 @@ public class TimetableController {
     @DeleteMapping("/delete")
     @Operation(summary = "删除排课")
     @Parameter(name = "id", description = "编号", required = true)
-    @PreAuthorize("@ss.hasPermission('solver:timetable:delete')")
+    @PreAuthorize("@ss.hasPermission('school:timetable:delete')")
     public CommonResult<Boolean> deleteTimetable(@RequestParam("id") Long id) {
         timetableService.deleteTimetable(id);
         return success(true);
@@ -93,7 +93,7 @@ public class TimetableController {
     @GetMapping("/get")
     @Operation(summary = "获得排课")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
-    @PreAuthorize("@ss.hasPermission('solver:timetable:query')")
+    @PreAuthorize("@ss.hasPermission('school:timetable:query')")
     public CommonResult<TimetableRespVO> getTimetable(@RequestParam("id") Long id) {
         TimetableDO timetable = timetableService.getTimetable(id);
         return success(BeanUtils.toBean(timetable, TimetableRespVO.class));
@@ -101,7 +101,7 @@ public class TimetableController {
 
     @GetMapping("/page")
     @Operation(summary = "获得排课分页")
-    @PreAuthorize("@ss.hasPermission('solver:timetable:query')")
+    @PreAuthorize("@ss.hasPermission('school:timetable:query')")
     public CommonResult<PageResult<TimetableRespVO>> getTimetablePage(@Valid TimetablePageReqVO pageReqVO) {
         PageResult<TimetableDO> pageResult = timetableService.getTimetablePage(pageReqVO);
         return success(TimetableConvert.INSTANCE.convertPage(pageResult));
@@ -116,7 +116,7 @@ public class TimetableController {
 
     @GetMapping("/export-excel")
     @Operation(summary = "导出排课 Excel")
-    @PreAuthorize("@ss.hasPermission('solver:timetable:export')")
+    @PreAuthorize("@ss.hasPermission('school:timetable:export')")
     @ApiAccessLog(operateType = EXPORT)
     public void exportTimetableExcel(@Valid TimetablePageReqVO pageReqVO,
                                      HttpServletResponse response) throws IOException {
