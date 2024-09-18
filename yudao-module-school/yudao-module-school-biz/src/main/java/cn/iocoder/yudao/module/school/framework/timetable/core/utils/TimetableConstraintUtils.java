@@ -7,8 +7,8 @@ import cn.iocoder.yudao.module.school.enums.timetable.SubjectEnum;
 import cn.iocoder.yudao.module.school.timetable.domain.Lesson;
 import com.google.ortools.sat.*;
 import lombok.experimental.UtilityClass;
+import org.checkerframework.common.value.qual.IntVal;
 
-import javax.security.auth.Subject;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -367,17 +367,76 @@ public class TimetableConstraintUtils {
      * @param dayPerWeek     每周上几天课
      */
     public void courseFocusConstraint(CpModel model, Literal[][][][][] x, List<Lesson> lessonList, int dayPerWeek, int timeSlotPerDay) {
+
         List<GradeDO> gradeList = lessonList.stream().map(Lesson::getGrade).distinct().toList();
         List<TeacherDO> teacherList = lessonList.stream().map(Lesson::getTeacher).distinct().toList();
         List<SubjectDO> subjectList = lessonList.stream().map(Lesson::getSubject).distinct().toList();
 
-        for (TeacherDO teacher : teacherList) {
-            int teacherIndex = teacherList.indexOf(teacher);
+        int teacherSize = teacherList.size();
+
+        //辅助变量：每个老师每天的最早课时
+        IntVar[][] teacherEarliestSort = new IntVar[teacherList.size()][dayPerWeek];
+        // 辅助变量：每个老师每天的最晚课时
+        IntVar[][] teacherLatestSort = new IntVar[teacherList.size()][dayPerWeek];
+        // 辅助变量：每个老师每天的课时差
+        IntVar[][] teacherSortGap = new IntVar[teacherList.size()][dayPerWeek];
+        for (int teacherIndex = 0; teacherIndex < teacherSize; teacherIndex++) {
             for (int week = 0; week < dayPerWeek; week++) {
-
+                teacherEarliestSort[teacherIndex][week] = model.newIntVar(0, timeSlotPerDay-1,  "teacher_earliest_sort_" + teacherList.get(teacherIndex).getName() + "_" + week);
+                teacherLatestSort[teacherIndex][week] = model.newIntVar(0, timeSlotPerDay-1,  "teacher_earliest_sort_" + teacherList.get(teacherIndex).getName() + "_" + week);
+                teacherSortGap[teacherIndex][week] = model.newIntVar(0, timeSlotPerDay-1,  "teacher_earliest_sort_" + teacherList.get(teacherIndex).getName() + "_" + week);
             }
-
         }
+
+        // 添加约束：计算每个老师每天的最早课时和最晚课时
+        for (int teacherIndex = 0; teacherIndex < teacherSize; teacherIndex++) {
+            TeacherDO teacher = teacherList.get(teacherIndex);
+            List<Lesson> teacherLessonList = lessonList.stream().filter(item -> item.getTeacher().getId().equals(teacher.getId())).toList();
+            List<GradeDO> teacherGradeList = teacherLessonList.stream().map(Lesson::getGrade).distinct().toList();
+            List<SubjectDO> teacherSubjectList = teacherLessonList.stream().map(Lesson::getSubject).distinct().toList();
+            for (int week = 0; week < dayPerWeek; week++) {
+                // 创建辅助变量，表示老师在某一时段是否游客
+                Literal[] hasClass = new Literal[timeSlotPerDay];
+                for (int sort = 0; sort < timeSlotPerDay; sort++) {
+                    hasClass[sort] = model.newBoolVar("has_class_" + teacherList.get(teacherIndex).getName() + "_" + week + "_" + sort);
+
+                    LinearExprBuilder sumExpr = LinearExpr.newBuilder();
+                    for (GradeDO grade : teacherGradeList) {
+                        for (SubjectDO subject : teacherSubjectList) {
+                            int gradeIndex = gradeList.indexOf(grade);
+                            int subjectIndex = subjectList.indexOf(subject);
+                            sumExpr.add(x[teacherIndex][gradeIndex][subjectIndex][week][sort]);
+                        }
+                    }
+                    model.addEquality(sumExpr, 1).onlyEnforceIf(hasClass[sort]);
+                    model.addEquality(sumExpr, 0).onlyEnforceIf(hasClass[sort].not());
+                }
+
+                LinearExpr[] listExpr = new LinearExpr[timeSlotPerDay];
+                for (int sort = 0; sort < timeSlotPerDay; sort++) {
+                    listExpr[sort] = LinearExpr.newBuilder().addTerm(hasClass[sort], sort).build();
+                }
+                //最早课时
+                model.addMinEquality(teacherEarliestSort[teacherIndex][week], listExpr);
+                // 最晚课时
+                model.addMaxEquality(teacherLatestSort[teacherIndex][week], listExpr);
+            }
+        }
+
+        // 添加约束，计算每个老师每天的课时差
+        for (int teacherIndex = 0; teacherIndex < teacherSize; teacherIndex++) {
+            for (int week = 0; week < dayPerWeek; week++) {
+                model.addEquality(teacherSortGap[teacherIndex][week], LinearExpr.weightedSum(new IntVar[]{teacherLatestSort[teacherIndex][week], teacherEarliestSort[teacherIndex][week]}, new long[]{1, -1}));
+            }
+        }
+
+        LinearExprBuilder sumExpr = LinearExpr.newBuilder();
+        for (int teacherIndex = 0; teacherIndex < teacherSize; teacherIndex++) {
+            for (int week = 0; week < dayPerWeek; week++) {
+                sumExpr.add(teacherSortGap[teacherIndex][week]);
+            }
+        }
+        model.minimize(sumExpr);
     }
 
 }

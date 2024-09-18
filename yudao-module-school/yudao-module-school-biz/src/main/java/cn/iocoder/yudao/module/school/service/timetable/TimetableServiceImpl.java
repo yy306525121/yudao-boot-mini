@@ -228,6 +228,8 @@ public class TimetableServiceImpl implements TimetableService {
         //3.10 每天的第1、2、6节课必须排课
         TimetableConstraintUtils.timeSlotMustConstraint(model, x, lessonList, dayPerWeek);
 
+        TimetableConstraintUtils.courseFocusConstraint(model, x, lessonList, dayPerWeek, timeSlotPerDay);
+
 
         //固定课程
         // model.addEquality(x[2][0][1][0][0], 1);
@@ -235,7 +237,7 @@ public class TimetableServiceImpl implements TimetableService {
 
         //4：定义求解器
         CpSolver solver = new CpSolver();
-        solver.getParameters().setMaxTimeInSeconds(30*60);
+        solver.getParameters().setMaxTimeInSeconds(5*60);
         solver.getParameters().setLogSearchProgress(true);
         CpSolverStatus status = solver.solve(model);
 
